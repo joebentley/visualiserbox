@@ -1,7 +1,5 @@
 use raylib::prelude::*;
 
-
-
 fn main() {
     let (mut rl, thread) = raylib::init().size(640, 480).title("Hello, World").build();
 
@@ -17,8 +15,13 @@ fn main() {
     let mut cwd = std::env::current_exe().unwrap();
     cwd.pop();
     cwd.push("DejaVuSans.ttf");
-    let font = rl.load_font(&thread, cwd.into_os_string().into_string().unwrap().as_str()).unwrap();
-    
+    let font = rl
+        .load_font(
+            &thread,
+            cwd.into_os_string().into_string().unwrap().as_str(),
+        )
+        .unwrap();
+
     while !rl.window_should_close() {
         let mut d = rl.begin_drawing(&thread);
         let t = d.get_time();
@@ -39,12 +42,22 @@ fn main() {
             }
         }
 
-	if let Some(c) = d.get_char_pressed() {
-	    input.push(c);
-	} else if !input.is_empty() && (d.is_key_pressed(KeyboardKey::KEY_BACKSPACE) || d.is_key_pressed_repeat(KeyboardKey::KEY_BACKSPACE)) {
-	    input.pop();
-	}
+        if let Some(c) = d.get_char_pressed() {
+            input.push(c);
+        } else if !input.is_empty()
+            && (d.is_key_pressed(KeyboardKey::KEY_BACKSPACE)
+                || d.is_key_pressed_repeat(KeyboardKey::KEY_BACKSPACE))
+        {
+            input.pop();
+        }
 
-	d.draw_text_ex(&font, input.as_str(), Vector2::new(20.0, 20.0), 40.0, 0.0, Color::NAVAJOWHITE);
+        d.draw_text_ex(
+            &font,
+            input.as_str(),
+            Vector2::new(20.0, 20.0),
+            40.0,
+            0.0,
+            Color::NAVAJOWHITE,
+        );
     }
 }
