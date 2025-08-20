@@ -1,5 +1,12 @@
 use raylib::prelude::*;
 
+fn path_relative_to_executable(font_file_name: &str) -> std::path::PathBuf {
+    let mut cwd = std::env::current_exe().unwrap();
+    cwd.pop();
+    cwd.push(font_file_name);
+    cwd
+}
+
 fn main() {
     let (mut rl, thread) = raylib::init().size(640, 480).title("Hello, World").build();
 
@@ -12,13 +19,12 @@ fn main() {
 
     let mut input = String::with_capacity(1000);
 
-    let mut cwd = std::env::current_exe().unwrap();
-    cwd.pop();
-    cwd.push("DejaVuSans.ttf");
     let font = rl
         .load_font(
             &thread,
-            cwd.into_os_string().into_string().unwrap().as_str(),
+            path_relative_to_executable("DejaVuSans.ttf")
+                .to_str()
+                .unwrap(),
         )
         .unwrap();
 
