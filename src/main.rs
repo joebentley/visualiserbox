@@ -15,7 +15,6 @@ fn main() {
     let scale = 4;
     let scaled_width = width / scale;
     let scaled_height = height / scale;
-    //let padding = width as f32 / 10.0;
 
     let mut input = String::with_capacity(1000);
 
