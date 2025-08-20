@@ -16,7 +16,7 @@ fn main() {
     let scaled_width = width / scale;
     let scaled_height = height / scale;
 
-    let mut input = String::with_capacity(1000);
+    let mut input = String::new();
 
     let font = rl
         .load_font(
