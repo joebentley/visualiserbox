@@ -60,6 +60,24 @@ impl Stack {
                 }
                 self.push(val / val2);
             }
+            'l' => {
+                let val = self.pop();
+                let mut val2 = self.pop();
+                if val2 < 1.0 {
+                    val2 = 1.0;
+                }
+                self.push(val * val2.ln());
+            }
+            'e' => {
+                let val = self.pop();
+                let val2 = self.pop();
+                self.push(val * val2.exp());
+            }
+            'c' => {
+                let val = self.pop();
+                let val2 = self.pop();
+                self.push(val * val2.cos());
+            }
             _ => {}
         }
     }
