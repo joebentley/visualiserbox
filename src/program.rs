@@ -1,10 +1,16 @@
 pub struct Stack {
-    pub stack: Vec<f32>,
+    stack: Vec<f32>,
+    ring_buffer: [f32; 3],
+    ring_buffer_pointer: usize,
 }
 
 impl Stack {
-    pub fn new() -> Stack {
-        Stack { stack: Vec::new() }
+    pub fn new(ring_buffer: [f32; 3]) -> Stack {
+        Stack {
+            stack: Vec::new(),
+            ring_buffer,
+            ring_buffer_pointer: 0,
+        }
     }
 
     pub fn push(&mut self, val: f32) {
@@ -12,15 +18,14 @@ impl Stack {
     }
 
     pub fn pop(&mut self) -> f32 {
-        self.stack.pop().unwrap_or(0.0)
+        match self.stack.pop() {
+            Some(v) => v,
+            None => self.end_repeat(),
+        }
     }
 
     pub fn pop2(&mut self) -> (f32, f32) {
         (self.pop(), self.pop())
-    }
-
-    pub fn pop_or(&mut self, default: f32) -> f32 {
-        self.stack.pop().unwrap_or(default)
     }
 
     pub fn execute(&mut self, instruction: char) {
@@ -36,10 +41,40 @@ impl Stack {
             _ => {}
         }
     }
+
+    pub fn get_stack(&self) -> Vec<f32> {
+        if self.stack.len() > 2 {
+            self.stack.clone()
+        } else if self.stack.len() == 2 {
+            vec![
+                self.stack[0],
+                self.stack[1],
+                self.ring_buffer[self.ring_buffer_pointer],
+            ]
+        } else if self.stack.len() == 1 {
+            vec![
+                self.stack[0],
+                self.ring_buffer[self.ring_buffer_pointer],
+                self.ring_buffer[(self.ring_buffer_pointer + 1) % 3],
+            ]
+        } else {
+            vec![
+                self.ring_buffer[self.ring_buffer_pointer],
+                self.ring_buffer[(self.ring_buffer_pointer + 1) % 3],
+                self.ring_buffer[(self.ring_buffer_pointer + 2) % 3],
+            ]
+        }
+    }
+
+    fn end_repeat(&mut self) -> f32 {
+        let val = self.ring_buffer[self.ring_buffer_pointer];
+        self.ring_buffer_pointer = (self.ring_buffer_pointer + 1) % 3;
+        val
+    }
 }
 
 pub fn execute_string(input: &str, x: i32, y: i32, t: f64) -> Stack {
-    let mut stack = Stack::new();
+    let mut stack = Stack::new([x as f32, y as f32, t as f32]);
     stack.push(t as f32);
     stack.push(y as f32);
     stack.push(x as f32);

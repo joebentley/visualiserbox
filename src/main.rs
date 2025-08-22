@@ -48,13 +48,13 @@ fn main() {
                 let mut stack = program::execute_string(input.as_str(), x, y, t);
 
                 if y == my && x == mx {
-                    for value in &stack.stack {
+                    for value in stack.get_stack() {
                         debug_string += (value.to_string() + "\n").as_str();
                     }
                     debug_string += format!("{} {}", mx, my).as_str();
                 }
 
-                let (h, s, v) = (stack.pop_or(0.0), stack.pop_or(0.0), stack.pop_or(1.0));
+                let (h, s, v) = (stack.pop(), stack.pop(), stack.pop());
 
                 d.draw_rectangle(
                     x * scale,
