@@ -35,9 +35,26 @@ fn main() {
 
         d.clear_background(Color::WHITE);
 
+        let mouse_position = d.get_mouse_position();
+        let (mx, my) = (
+            mouse_position.x.floor() as i32 / scale,
+            mouse_position.y.floor() as i32 / scale,
+        );
+
+        let mut debug_string = String::new();
+
         for y in 0..scaled_height {
             for x in 0..scaled_width {
-                let (h, s, v) = program::execute_string(input.as_str(), x, y, t);
+                let mut stack = program::execute_string(input.as_str(), x, y, t);
+
+                if y == my && x == mx {
+                    for value in &stack.stack {
+                        debug_string += (value.to_string() + "\n").as_str();
+                    }
+                    debug_string += format!("{} {}", mx, my).as_str();
+                }
+
+                let (h, s, v) = (stack.pop_or(0.0), stack.pop_or(0.0), stack.pop_or(1.0));
 
                 d.draw_rectangle(
                     x * scale,
@@ -49,6 +66,15 @@ fn main() {
             }
         }
 
+        d.draw_text_ex(
+            &font,
+            debug_string.as_str(),
+            Vector2::new(width as f32 - 150.0, 20.0),
+            30.0,
+            0.0,
+            Color::NAVAJOWHITE,
+        );
+
         if let Some(c) = d.get_char_pressed() {
             input = c.to_string() + &input;
         } else if !input.is_empty()
@@ -57,18 +83,6 @@ fn main() {
         {
             input = input[1..].to_string();
         }
-
-        let mouse_position = d.get_mouse_position();
-        let (mx, my) = (mouse_position.x.floor(), mouse_position.y.floor());
-
-        d.draw_text_ex(
-            &font,
-            format!("{} {}", mx, my).as_str(),
-            Vector2::new(width as f32 - 150.0, height as f32 - 60.0),
-            30.0,
-            0.0,
-            Color::NAVAJOWHITE,
-        );
 
         d.draw_text_ex(
             &font,
