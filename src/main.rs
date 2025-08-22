@@ -60,6 +60,18 @@ fn main() {
             input = input[1..].to_string();
         }
 
+        let mouse_position = d.get_mouse_position();
+        let (mx, my) = (mouse_position.x.floor(), mouse_position.y.floor());
+
+        d.draw_text_ex(
+            &font,
+            format!("{} {}", mx, my).as_str(),
+            Vector2::new(width as f32 - 150.0, height as f32 - 60.0),
+            30.0,
+            0.0,
+            Color::NAVAJOWHITE,
+        );
+
         d.draw_text_ex(
             &font,
             input.as_str(),
