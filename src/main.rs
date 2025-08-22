@@ -39,8 +39,6 @@ fn main() {
             for x in 0..scaled_width {
                 let (h, s, v) = program::execute_string(input.as_str(), x, y, t);
 
-                // let x_val = (2.0 * (x as f64) * (4.0 + 2.0 * f64::sin(t))) as i32;
-                // let y_val = (1.0 * (y as f64) * (6.0 + 2.0 * f64::sin(t + 0.2))) as i32;
                 d.draw_rectangle(
                     x * scale,
                     y * scale,
