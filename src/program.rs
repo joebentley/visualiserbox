@@ -30,6 +30,12 @@ impl Stack {
 
     pub fn execute(&mut self, instruction: char) {
         match instruction {
+            'x' => {
+                let val1 = self.pop();
+                let val2 = self.pop();
+                self.push(val1);
+                self.push(val2);
+            }
             '^' => {
                 let (a, b) = self.pop2();
                 self.push(((a as i32) ^ (b as i32)) as f32);
@@ -37,6 +43,22 @@ impl Stack {
             '+' => {
                 let val = self.pop() + self.pop();
                 self.push(val);
+            }
+            '-' => {
+                let val = self.pop() - self.pop();
+                self.push(val);
+            }
+            '*' => {
+                let val = self.pop() * self.pop();
+                self.push(val);
+            }
+            '/' => {
+                let val = self.pop();
+                let mut val2 = self.pop();
+                if val2 == 0.0 {
+                    val2 = 1.0;
+                }
+                self.push(val / val2);
             }
             _ => {}
         }
