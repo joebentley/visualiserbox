@@ -1,15 +1,15 @@
+use crate::ringbuffer::RingBuffer;
+
 pub struct Stack {
     stack: Vec<f32>,
-    ring_buffer: [f32; 3],
-    ring_buffer_pointer: usize,
+    ring_buffer: RingBuffer<f32>,
 }
 
 impl Stack {
     pub fn new(ring_buffer: [f32; 3]) -> Stack {
         Stack {
             stack: Vec::new(),
-            ring_buffer,
-            ring_buffer_pointer: 0,
+            ring_buffer: ring_buffer.into_iter().collect(),
         }
     }
 
@@ -20,7 +20,11 @@ impl Stack {
     pub fn pop(&mut self) -> f32 {
         match self.stack.pop() {
             Some(v) => v,
-            None => self.end_repeat(),
+            None => {
+                let val = *self.ring_buffer.current();
+                self.ring_buffer.increment();
+                val
+            }
         }
     }
 
@@ -85,31 +89,28 @@ impl Stack {
     pub fn get_stack(&self) -> Vec<f32> {
         if self.stack.len() > 2 {
             self.stack.clone()
-        } else if self.stack.len() == 2 {
-            vec![
-                self.stack[0],
-                self.stack[1],
-                self.ring_buffer[self.ring_buffer_pointer],
-            ]
-        } else if self.stack.len() == 1 {
-            vec![
-                self.stack[0],
-                self.ring_buffer[self.ring_buffer_pointer],
-                self.ring_buffer[(self.ring_buffer_pointer + 1) % 3],
-            ]
         } else {
-            vec![
-                self.ring_buffer[self.ring_buffer_pointer],
-                self.ring_buffer[(self.ring_buffer_pointer + 1) % 3],
-                self.ring_buffer[(self.ring_buffer_pointer + 2) % 3],
-            ]
+            let mut ring_buffer_iter = self.ring_buffer.clone().into_iter();
+            if self.stack.len() == 2 {
+                vec![
+                    self.stack[0],
+                    self.stack[1],
+                    ring_buffer_iter.next().unwrap(),
+                ]
+            } else if self.stack.len() == 1 {
+                vec![
+                    self.stack[0],
+                    ring_buffer_iter.next().unwrap(),
+                    ring_buffer_iter.next().unwrap(),
+                ]
+            } else {
+                vec![
+                    ring_buffer_iter.next().unwrap(),
+                    ring_buffer_iter.next().unwrap(),
+                    ring_buffer_iter.next().unwrap(),
+                ]
+            }
         }
-    }
-
-    fn end_repeat(&mut self) -> f32 {
-        let val = self.ring_buffer[self.ring_buffer_pointer];
-        self.ring_buffer_pointer = (self.ring_buffer_pointer + 1) % 3;
-        val
     }
 }
 

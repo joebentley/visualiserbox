@@ -1,4 +1,5 @@
 mod program;
+mod ringbuffer;
 
 use raylib::prelude::*;
 
