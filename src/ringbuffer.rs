@@ -49,7 +49,7 @@ impl<'a, T: Clone> IntoIterator for &'a RingBuffer<T> {
     type IntoIter = RingBufferIterator<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        RingBufferIterator::new(&self)
+        RingBufferIterator::new(self)
     }
 }
 
