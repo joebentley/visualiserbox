@@ -55,17 +55,18 @@ impl<'a, T: Clone> IntoIterator for &'a RingBuffer<T> {
 
 pub struct RingBufferIterator<'a, T> {
     buffer: &'a RingBuffer<T>,
+    num_elements_left: i64,
     current_pointer: usize,
-    first_done: bool,
 }
 
 impl<'a, T> RingBufferIterator<'a, T> {
     pub fn new(buffer: &'a RingBuffer<T>) -> RingBufferIterator<'a, T> {
-        let current_pointer = buffer.pointer;
+        let current_pointer = buffer.pointer % buffer.buffer.len();
+
         RingBufferIterator {
             buffer,
             current_pointer,
-            first_done: false,
+            num_elements_left: buffer.buffer.len() as i64,
         }
     }
 }
@@ -74,14 +75,14 @@ impl<'a, T: Clone> Iterator for RingBufferIterator<'a, T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
+        self.num_elements_left -= 1;
+        if self.num_elements_left < 0 {
+            return None;
+        }
+
         let value = self.buffer.buffer[self.current_pointer].clone();
         self.current_pointer = (self.current_pointer + 1) % self.buffer.buffer.len();
-        if self.first_done && self.current_pointer == self.buffer.pointer + 1 {
-            None
-        } else {
-            self.first_done = true;
-            Some(value)
-        }
+        Some(value)
     }
 }
 
@@ -131,5 +132,17 @@ mod tests {
         let iterator = ring_buffer.into_iter();
         let v: Vec<i32> = iterator.collect();
         assert_eq!(v, vec![3, 4, 1, 2]);
+    }
+
+    #[test]
+    fn test_iterator_length_less_than_capacity() {
+        let mut ring_buffer: RingBuffer<i32> = RingBuffer::new(4);
+        ring_buffer.push(1);
+        ring_buffer.push(2);
+        ring_buffer.push(3);
+
+        let iterator = ring_buffer.into_iter();
+        let v: Vec<i32> = iterator.collect();
+        assert_eq!(v, vec![1, 2, 3]);
     }
 }
