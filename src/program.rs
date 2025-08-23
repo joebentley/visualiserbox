@@ -90,7 +90,7 @@ impl Stack {
         if self.stack.len() > 2 {
             self.stack.clone()
         } else {
-            let mut ring_buffer_iter = self.ring_buffer.clone().into_iter();
+            let mut ring_buffer_iter = self.ring_buffer.into_iter();
             if self.stack.len() == 2 {
                 vec![
                     self.stack[0],

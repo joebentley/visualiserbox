@@ -44,23 +44,23 @@ impl<T: Clone> FromIterator<T> for RingBuffer<T> {
     }
 }
 
-impl<T: Clone> IntoIterator for RingBuffer<T> {
+impl<'a, T: Clone> IntoIterator for &'a RingBuffer<T> {
     type Item = T;
-    type IntoIter = RingBufferIterator<T>;
+    type IntoIter = RingBufferIterator<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        RingBufferIterator::new(self)
+        RingBufferIterator::new(&self)
     }
 }
 
-pub struct RingBufferIterator<T> {
-    buffer: RingBuffer<T>,
+pub struct RingBufferIterator<'a, T> {
+    buffer: &'a RingBuffer<T>,
     current_pointer: usize,
     first_done: bool,
 }
 
-impl<T> RingBufferIterator<T> {
-    pub fn new(buffer: RingBuffer<T>) -> RingBufferIterator<T> {
+impl<'a, T> RingBufferIterator<'a, T> {
+    pub fn new(buffer: &'a RingBuffer<T>) -> RingBufferIterator<'a, T> {
         let current_pointer = buffer.pointer;
         RingBufferIterator {
             buffer,
@@ -70,7 +70,7 @@ impl<T> RingBufferIterator<T> {
     }
 }
 
-impl<T: Clone> Iterator for RingBufferIterator<T> {
+impl<'a, T: Clone> Iterator for RingBufferIterator<'a, T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
