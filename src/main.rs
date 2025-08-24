@@ -1,4 +1,5 @@
 mod program;
+mod recorder;
 mod ringbuffer;
 
 use raylib::prelude::*;
@@ -11,6 +12,8 @@ fn path_relative_to_executable(font_file_name: &str) -> std::path::PathBuf {
 }
 
 fn main() {
+    ffmpeg_sidecar::download::auto_download().unwrap();
+
     let (mut rl, thread) = raylib::init().size(640, 480).title("Hello, World").build();
 
     let width = rl.get_screen_width();
@@ -30,6 +33,7 @@ fn main() {
         )
         .unwrap();
 
+    let mut screen_recorder = recorder::ScreenRecorder::new(100);
 
     while !rl.window_should_close() {
         let t = rl.get_time();
@@ -41,7 +45,11 @@ fn main() {
         );
 
         if let Some(c) = rl.get_char_pressed() {
+            if c == 's' {
+                screen_recorder.save_as_video("test.mp4");
+            } else {
                 input = c.to_string() + &input;
+            }
         } else if !input.is_empty()
             && (rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE)
                 || rl.is_key_pressed_repeat(KeyboardKey::KEY_BACKSPACE))
@@ -96,5 +104,6 @@ fn main() {
             );
         }
 
+        screen_recorder.push_image(rl.load_image_from_screen(&thread).clone());
     }
 }
