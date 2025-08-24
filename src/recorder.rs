@@ -149,6 +149,7 @@ impl ScreenRecorder {
                 .rate(60.0)
                 .codec_video("libx264")
                 .pix_fmt("yuv420p")
+                .args(["-crf", "5"])
                 .output(filepath)
                 .print_command()
                 .overwrite()
