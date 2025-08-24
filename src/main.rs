@@ -2,6 +2,8 @@ mod program;
 mod recorder;
 mod ringbuffer;
 
+use std::sync::mpsc;
+
 use raylib::prelude::*;
 
 fn path_relative_to_executable(font_file_name: &str) -> std::path::PathBuf {
@@ -33,7 +35,11 @@ fn main() {
         )
         .unwrap();
 
-    let mut screen_recorder = recorder::ScreenRecorder::new(100);
+    let screen_recorder_length = 200;
+    let mut screen_recorder = recorder::ScreenRecorder::new(screen_recorder_length);
+
+    let (progress_sender, progress_receiver) = mpsc::channel();
+    let mut screen_recorder_state = recorder::ScreenRecorderState::new(progress_receiver);
 
     while !rl.window_should_close() {
         let t = rl.get_time();
@@ -44,9 +50,14 @@ fn main() {
             mouse_position.y.floor() as i32 / scale,
         );
 
+        screen_recorder_state.update();
+
         if let Some(c) = rl.get_char_pressed() {
             if c == 's' {
-                screen_recorder.save_as_video("test.mp4");
+                if !screen_recorder_state.is_saving() {
+                    screen_recorder_state.start();
+                    screen_recorder.save_as_video("test.mp4", progress_sender.clone());
+                }
             } else {
                 input = c.to_string() + &input;
             }
@@ -102,6 +113,18 @@ fn main() {
                 0.0,
                 Color::NAVAJOWHITE,
             );
+
+            if screen_recorder_state.is_saving() {
+                let text = screen_recorder_state.progress_string(screen_recorder_length);
+                d.draw_text_ex(
+                    &font,
+                    text.as_str(),
+                    Vector2::new(10.0, 400.0),
+                    30.0,
+                    0.0,
+                    Color::NAVAJOWHITE,
+                );
+            }
         }
 
         screen_recorder.push_image(rl.load_image_from_screen(&thread).clone());
