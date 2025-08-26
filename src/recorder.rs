@@ -144,12 +144,12 @@ impl ScreenRecorder {
             frame_glob.push(format!("frame_{}_%d.png", uuid));
 
             let iter = ffmpeg_sidecar::command::FfmpegCommand::new()
-                .input(frame_glob.to_str().unwrap())
-                .args(["-pattern_type", "sequence"])
                 .rate(60.0)
-                .codec_video("libx264")
-                .pix_fmt("yuv420p")
+                .args(["-pattern_type", "sequence"])
+                .input(frame_glob.to_str().unwrap())
                 .args(["-crf", "5"])
+                .pix_fmt("yuv420p")
+                .codec_video("libx264")
                 .output(filepath)
                 .print_command()
                 .overwrite()

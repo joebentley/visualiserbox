@@ -12,4 +12,4 @@ calculations are based on absolute time
 * TODO Better error handling
 In few places, there are a lot of unwraps, such as in the
 save_as_video function. Should consider using the anyhow crate
-* TODO Figure out why the output video seems slower than the FPS
+* DONE Figure out why the output video seems slower than the FPS
