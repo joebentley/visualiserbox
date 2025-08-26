@@ -1,5 +1,5 @@
 
-* TODO Look for first free filename for video
+* DONE Look for first free filename for video
 Currently just overwrites the current one
 * TODO Add .toml based configuration
 At first, just for how many frames the recording buffer remembers
@@ -11,3 +11,4 @@ calculations are based on absolute time
 * TODO Better error handling
 In few places, there are a lot of unwraps, such as in the
 save_as_video function. Should consider using the anyhow crate
+* TODO Figure out why the output video seems slower than the FPS
