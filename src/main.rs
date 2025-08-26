@@ -55,6 +55,7 @@ fn main() {
     let mut screen_recorder_state = recorder::ScreenRecorderState::new(progress_receiver);
 
     while !rl.window_should_close() {
+        let fps = 1.0 / rl.get_frame_time();
         let t = rl.get_time();
 
         let mouse_position = rl.get_mouse_position();
@@ -124,6 +125,15 @@ fn main() {
                 &font,
                 input.as_str(),
                 Vector2::new(20.0, 20.0),
+                40.0,
+                0.0,
+                Color::NAVAJOWHITE,
+            );
+
+            d.draw_text_ex(
+                &font,
+                fps.round().to_string().as_str(),
+                Vector2::new(width as f32 - 80.0, 400.0),
                 40.0,
                 0.0,
                 Color::NAVAJOWHITE,

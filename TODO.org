@@ -2,7 +2,8 @@
 * DONE Look for first free filename for video
 Currently just overwrites the current one
 * TODO Add .toml based configuration
-At first, just for how many frames the recording buffer remembers
+How many frames the recording buffer remembers
+Whether to show fps (could also be a keyboard shortcut)
 * TODO Allow resetting time
 This would be useful for resetting the state of the VM since the
 calculations are based on absolute time
