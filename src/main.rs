@@ -6,6 +6,19 @@ use std::sync::mpsc;
 
 use raylib::prelude::*;
 
+fn next_available_video_path() -> Option<std::path::PathBuf> {
+    let cwd = std::env::current_dir().unwrap();
+    for i in 0..999 {
+        let video_name = format!("video_{:03}.mp4", i);
+        let mut video_path = cwd.clone();
+        video_path.push(video_name);
+        if !video_path.try_exists().unwrap() {
+            return Some(video_path);
+        }
+    }
+    None
+}
+
 fn path_relative_to_executable(font_file_name: &str) -> std::path::PathBuf {
     let mut cwd = std::env::current_exe().unwrap();
     cwd.pop();
@@ -54,9 +67,11 @@ fn main() {
 
         if let Some(c) = rl.get_char_pressed() {
             if c == 's' {
-                if !screen_recorder_state.is_saving() {
+                if !screen_recorder_state.is_saving()
+                    && let Some(path) = next_available_video_path()
+                {
                     screen_recorder_state.start();
-                    screen_recorder.save_as_video("test.mp4", progress_sender.clone());
+                    screen_recorder.save_as_video(path.to_str().unwrap(), progress_sender.clone());
                 }
             } else {
                 input = c.to_string() + &input;
