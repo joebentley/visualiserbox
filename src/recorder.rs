@@ -38,10 +38,12 @@ impl ScreenRecorderState {
     }
 
     pub fn start(&mut self) {
+        assert!(!self.is_saving);
         self.is_saving = true;
     }
 
     pub fn update(&mut self) {
+        assert!(self.is_saving);
         if let Ok(value) = self.receiver.try_recv() {
             match value {
                 ScreenRecorderMessage::ProcessingFrameStep => {
@@ -68,6 +70,7 @@ impl ScreenRecorderState {
     }
 
     fn reset(&mut self) {
+        assert!(self.is_saving);
         self.steps_seen = 0;
         self.is_saving = false;
     }

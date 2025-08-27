@@ -64,7 +64,9 @@ fn main() {
             mouse_position.y.floor() as i32 / scale,
         );
 
-        screen_recorder_state.update();
+        if screen_recorder_state.is_saving() {
+            screen_recorder_state.update();
+        }
 
         if let Some(c) = rl.get_char_pressed() {
             if c == 's' {
