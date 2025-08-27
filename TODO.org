@@ -1,6 +1,4 @@
 
-* DONE Look for first free filename for video
-Currently just overwrites the current one
 * TODO Add .toml based configuration
 How many frames the recording buffer remembers
 Whether to show fps (could also be a keyboard shortcut)
@@ -12,4 +10,7 @@ calculations are based on absolute time
 * TODO Better error handling
 In few places, there are a lot of unwraps, such as in the
 save_as_video function. Should consider using the anyhow crate
+* TODO Add assertions to ensure state is valid in ScreenRecorderState
+* DONE Look for first free filename for video
+Currently just overwrites the current one
 * DONE Figure out why the output video seems slower than the FPS
