@@ -1,3 +1,4 @@
+mod config;
 mod program;
 mod recorder;
 mod ringbuffer;
@@ -26,14 +27,18 @@ fn path_relative_to_executable(font_file_name: &str) -> std::path::PathBuf {
     cwd
 }
 
-fn main() {
+fn main() -> anyhow::Result<()> {
+    colog::init();
+
     ffmpeg_sidecar::download::auto_download().unwrap();
+
+    let config = config::Config::from_file("config.toml")?;
 
     let (mut rl, thread) = raylib::init().size(640, 480).title("Hello, World").build();
 
     let width = rl.get_screen_width();
     let height = rl.get_screen_height();
-    let scale = 4;
+    let scale = config.scale as i32;
     let scaled_width = width / scale;
     let scaled_height = height / scale;
 
@@ -48,7 +53,7 @@ fn main() {
         )
         .unwrap();
 
-    let screen_recorder_length = 200;
+    let screen_recorder_length = config.video_frames as usize;
     let mut screen_recorder = recorder::ScreenRecorder::new(screen_recorder_length);
 
     let (progress_sender, progress_receiver) = mpsc::channel();
@@ -132,14 +137,16 @@ fn main() {
                 Color::NAVAJOWHITE,
             );
 
-            d.draw_text_ex(
-                &font,
-                fps.round().to_string().as_str(),
-                Vector2::new(width as f32 - 80.0, 400.0),
-                40.0,
-                0.0,
-                Color::NAVAJOWHITE,
-            );
+            if config.show_fps {
+                d.draw_text_ex(
+                    &font,
+                    fps.round().to_string().as_str(),
+                    Vector2::new(width as f32 - 80.0, 400.0),
+                    40.0,
+                    0.0,
+                    Color::NAVAJOWHITE,
+                );
+            }
 
             if screen_recorder_state.is_saving() {
                 let text = screen_recorder_state.progress_string(screen_recorder_length);
@@ -156,4 +163,6 @@ fn main() {
 
         screen_recorder.push_image(rl.load_image_from_screen(&thread).clone());
     }
+
+    Ok(())
 }

@@ -1,7 +1,4 @@
 
-* TODO Add .toml based configuration
-How many frames the recording buffer remembers
-Whether to show fps (could also be a keyboard shortcut)
 * TODO Allow resetting time
 This would be useful for resetting the state of the VM since the
 calculations are based on absolute time
@@ -13,6 +10,9 @@ save_as_video function. Should consider using the anyhow crate
 
 This is difficult in the save_as_video function as it is totally
 asynchronous, it just launches a thread.
+* DONE Add .toml based configuration
+How many frames the recording buffer remembers
+Whether to show fps (could also be a keyboard shortcut)
 * DONE Add assertions to ensure state is valid in ScreenRecorderState
 * DONE Look for first free filename for video
 Currently just overwrites the current one
