@@ -10,6 +10,9 @@ calculations are based on absolute time
 * TODO Better error handling
 In few places, there are a lot of unwraps, such as in the
 save_as_video function. Should consider using the anyhow crate
+
+This is difficult in the save_as_video function as it is totally
+asynchronous, it just launches a thread.
 * DONE Add assertions to ensure state is valid in ScreenRecorderState
 * DONE Look for first free filename for video
 Currently just overwrites the current one
