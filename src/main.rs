@@ -7,30 +7,30 @@ use std::sync::mpsc;
 
 use raylib::prelude::*;
 
-fn next_available_video_path() -> Option<std::path::PathBuf> {
-    let cwd = std::env::current_dir().unwrap();
+fn next_available_video_path() -> std::io::Result<Option<std::path::PathBuf>> {
+    let cwd = std::env::current_dir()?;
     for i in 0..999 {
         let video_name = format!("video_{:03}.mp4", i);
         let mut video_path = cwd.clone();
         video_path.push(video_name);
-        if !video_path.try_exists().unwrap() {
-            return Some(video_path);
+        if !video_path.try_exists()? {
+            return Ok(Some(video_path));
         }
     }
-    None
+    Ok(None)
 }
 
-fn path_relative_to_executable(font_file_name: &str) -> std::path::PathBuf {
-    let mut cwd = std::env::current_exe().unwrap();
+fn path_relative_to_executable(font_file_name: &str) -> std::io::Result<std::path::PathBuf> {
+    let mut cwd = std::env::current_exe()?;
     cwd.pop();
     cwd.push(font_file_name);
-    cwd
+    Ok(cwd)
 }
 
 fn main() -> anyhow::Result<()> {
     colog::init();
 
-    ffmpeg_sidecar::download::auto_download().unwrap();
+    ffmpeg_sidecar::download::auto_download()?;
 
     let config = config::Config::from_file("config.toml")?;
 
@@ -44,14 +44,12 @@ fn main() -> anyhow::Result<()> {
 
     let mut input = String::new();
 
-    let font = rl
-        .load_font(
-            &thread,
-            path_relative_to_executable("DejaVuSans.ttf")
-                .to_str()
-                .unwrap(),
-        )
-        .unwrap();
+    let font = rl.load_font(
+        &thread,
+        path_relative_to_executable("DejaVuSans.ttf")?
+            .to_str()
+            .unwrap(),
+    )?;
 
     let screen_recorder_length = config.video_frames as usize;
     let mut screen_recorder = recorder::ScreenRecorder::new(screen_recorder_length);
@@ -76,7 +74,7 @@ fn main() -> anyhow::Result<()> {
         if let Some(c) = rl.get_char_pressed() {
             if c == 's' {
                 if !screen_recorder_state.is_saving()
-                    && let Some(path) = next_available_video_path()
+                    && let Some(path) = next_available_video_path()?
                 {
                     screen_recorder_state.start();
                     screen_recorder.save_as_video(path.to_str().unwrap(), progress_sender.clone());
