@@ -83,12 +83,14 @@ pub enum ScreenRecorderMessage {
 
 pub struct ScreenRecorder {
     frames: RingBuffer<Image>,
+    sender: mpsc::Sender<ScreenRecorderMessage>,
 }
 
 impl ScreenRecorder {
-    pub fn new(length: usize) -> ScreenRecorder {
+    pub fn new(length: usize, sender: mpsc::Sender<ScreenRecorderMessage>) -> ScreenRecorder {
         ScreenRecorder {
             frames: RingBuffer::new(length),
+            sender,
         }
     }
 
@@ -110,10 +112,11 @@ impl ScreenRecorder {
         image_datas
     }
 
-    pub fn save_as_video(&self, filepath: &str, progress: mpsc::Sender<ScreenRecorderMessage>) {
+    pub fn save_as_video(&self, filepath: &str) {
         let image_datas = self.convert_frames_to_imagedata();
 
         let filepath = filepath.to_string();
+        let sender = self.sender.clone();
         std::thread::spawn(move || {
             let tmp_dir = std::env::temp_dir();
             // Concatenate a UUID to ensure there is no clash with other
@@ -125,7 +128,7 @@ impl ScreenRecorder {
             for (i, image_data) in image_datas.into_iter().enumerate() {
                 let mut frame_path = tmp_dir.clone();
                 frame_path.push(format!("frame_{}_{}.png", uuid, i));
-                let progress = progress.clone();
+                let progress = sender.clone();
                 let handle = std::thread::spawn(move || {
                     let frame = image_data.to_rgbimage();
                     progress
@@ -165,7 +168,7 @@ impl ScreenRecorder {
                 eprintln!("{:#?}", message);
             }
 
-            progress.send(ScreenRecorderMessage::Done).unwrap();
+            sender.send(ScreenRecorderMessage::Done).unwrap();
         });
     }
 }

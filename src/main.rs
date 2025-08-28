@@ -27,6 +27,39 @@ fn path_relative_to_executable(font_file_name: &str) -> std::io::Result<std::pat
     Ok(cwd)
 }
 
+struct AppState {
+    input: String,
+    screen_recorder: recorder::ScreenRecorder,
+    screen_recorder_state: recorder::ScreenRecorderState,
+}
+
+impl AppState {
+    fn update(&mut self, rl: &mut RaylibHandle) -> anyhow::Result<()> {
+        if self.screen_recorder_state.is_saving() {
+            self.screen_recorder_state.update();
+        }
+
+        if let Some(c) = rl.get_char_pressed() {
+            if c == 's' {
+                if !self.screen_recorder_state.is_saving()
+                    && let Some(path) = next_available_video_path()?
+                {
+                    self.screen_recorder_state.start();
+                    self.screen_recorder.save_as_video(path.to_str().unwrap());
+                }
+            } else {
+                self.input = c.to_string() + &self.input;
+            }
+        } else if !self.input.is_empty()
+            && (rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE)
+                || rl.is_key_pressed_repeat(KeyboardKey::KEY_BACKSPACE))
+        {
+            self.input = self.input[1..].to_string();
+        }
+        Ok(())
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     colog::init();
 
@@ -42,8 +75,6 @@ fn main() -> anyhow::Result<()> {
     let scaled_width = width / scale;
     let scaled_height = height / scale;
 
-    let mut input = String::new();
-
     let font = rl.load_font(
         &thread,
         path_relative_to_executable("DejaVuSans.ttf")?
@@ -52,10 +83,14 @@ fn main() -> anyhow::Result<()> {
     )?;
 
     let screen_recorder_length = config.video_frames as usize;
-    let mut screen_recorder = recorder::ScreenRecorder::new(screen_recorder_length);
 
     let (progress_sender, progress_receiver) = mpsc::channel();
-    let mut screen_recorder_state = recorder::ScreenRecorderState::new(progress_receiver);
+
+    let mut app_state = AppState {
+        input: String::new(),
+        screen_recorder: recorder::ScreenRecorder::new(screen_recorder_length, progress_sender),
+        screen_recorder_state: recorder::ScreenRecorderState::new(progress_receiver),
+    };
 
     while !rl.window_should_close() {
         let fps = 1.0 / rl.get_frame_time();
@@ -67,27 +102,7 @@ fn main() -> anyhow::Result<()> {
             mouse_position.y.floor() as i32 / scale,
         );
 
-        if screen_recorder_state.is_saving() {
-            screen_recorder_state.update();
-        }
-
-        if let Some(c) = rl.get_char_pressed() {
-            if c == 's' {
-                if !screen_recorder_state.is_saving()
-                    && let Some(path) = next_available_video_path()?
-                {
-                    screen_recorder_state.start();
-                    screen_recorder.save_as_video(path.to_str().unwrap(), progress_sender.clone());
-                }
-            } else {
-                input = c.to_string() + &input;
-            }
-        } else if !input.is_empty()
-            && (rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE)
-                || rl.is_key_pressed_repeat(KeyboardKey::KEY_BACKSPACE))
-        {
-            input = input[1..].to_string();
-        }
+        app_state.update(&mut rl)?;
 
         {
             let mut d = rl.begin_drawing(&thread);
@@ -97,7 +112,7 @@ fn main() -> anyhow::Result<()> {
 
             for y in 0..scaled_height {
                 for x in 0..scaled_width {
-                    let mut stack = program::execute_string(input.as_str(), x, y, t);
+                    let mut stack = program::execute_string(&app_state.input, x, y, t);
 
                     if y == my && x == mx {
                         for value in stack.get_stack() {
@@ -128,7 +143,7 @@ fn main() -> anyhow::Result<()> {
 
             d.draw_text_ex(
                 &font,
-                input.as_str(),
+                &app_state.input,
                 Vector2::new(20.0, 20.0),
                 40.0,
                 0.0,
@@ -146,8 +161,10 @@ fn main() -> anyhow::Result<()> {
                 );
             }
 
-            if screen_recorder_state.is_saving() {
-                let text = screen_recorder_state.progress_string(screen_recorder_length);
+            if app_state.screen_recorder_state.is_saving() {
+                let text = app_state
+                    .screen_recorder_state
+                    .progress_string(screen_recorder_length);
                 d.draw_text_ex(
                     &font,
                     text.as_str(),
@@ -159,7 +176,9 @@ fn main() -> anyhow::Result<()> {
             }
         }
 
-        screen_recorder.push_image(rl.load_image_from_screen(&thread).clone());
+        app_state
+            .screen_recorder
+            .push_image(rl.load_image_from_screen(&thread).clone());
     }
 
     Ok(())
