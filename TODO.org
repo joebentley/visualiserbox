@@ -4,15 +4,17 @@ This would be useful for resetting the state of the VM since the
 calculations are based on absolute time
 * TODO Add shortcut to delete the whole input buffer
 * TODO Add help screen for basic info and keyboard shortcuts
-* TODO Try using pipe instead of files for ffmpeg
-Saving the image frames as pngs takes too long. We can try pipeing the
-images from memory to the ffmpeg stdin 
+* TODO Parallelise video rendering
+When moving to using the pipe, all parallelisation was removed.
 * TODO Better error handling
 In few places, there are a lot of unwraps, such as in the
 save_as_video function. Should consider using the anyhow crate
 
 This is difficult in the save_as_video function as it is totally
 asynchronous, it just launches a thread.
+* DONE Try using pipe instead of files for ffmpeg
+Saving the image frames as pngs takes too long. We can try pipeing the
+images from memory to the ffmpeg stdin 
 * DONE Add .toml based configuration
 How many frames the recording buffer remembers
 Whether to show fps (could also be a keyboard shortcut)

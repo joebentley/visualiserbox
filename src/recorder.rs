@@ -1,4 +1,4 @@
-use std::{sync::mpsc, thread::JoinHandle};
+use std::{io::Write, sync::mpsc};
 
 use raylib::texture::{Image, ImageColors};
 
@@ -62,11 +62,7 @@ impl ScreenRecorderState {
 
     pub fn progress_string(&self, recorder_num_frames: usize) -> String {
         let percentage = 100 * self.steps_seen / recorder_num_frames;
-        if percentage < 100 {
-            format!("{:3}% {}", percentage, "Rendering frames")
-        } else {
-            format!("{:3}% {}", percentage - 100, "Saving frames")
-        }
+        format!("{:3}% {}", percentage, "Rendering frames")
     }
 
     fn reset(&mut self) {
@@ -118,41 +114,30 @@ impl ScreenRecorder {
         let filepath = filepath.to_string();
         let sender = self.sender.clone();
         std::thread::spawn(move || {
-            let tmp_dir = std::env::temp_dir();
-            // Concatenate a UUID to ensure there is no clash with other
-            // pngs already in the tmp_dir
-            let uuid = uuid::Uuid::new_v4();
+            let width = image_datas[0].width;
+            let height = image_datas[0].height;
+            let mut bmp_frames = Vec::new();
 
-            let mut handles: Vec<JoinHandle<_>> = Vec::new();
-
-            for (i, image_data) in image_datas.into_iter().enumerate() {
-                let mut frame_path = tmp_dir.clone();
-                frame_path.push(format!("frame_{}_{}.png", uuid, i));
-                let progress = sender.clone();
-                let handle = std::thread::spawn(move || {
-                    let frame = image_data.to_rgbimage();
-                    progress
-                        .send(ScreenRecorderMessage::ProcessingFrameStep)
-                        .unwrap();
-                    frame.save(frame_path.to_str().unwrap()).unwrap();
-                    progress
-                        .send(ScreenRecorderMessage::ProcessingFrameStep)
-                        .unwrap();
-                });
-                handles.push(handle);
+            for image_data in image_datas {
+                let rgb_frame = image_data.to_rgbimage();
+                bmp_frames.append(&mut rgb_frame.into_raw());
+                sender
+                    .send(ScreenRecorderMessage::ProcessingFrameStep)
+                    .unwrap();
             }
 
-            for handle in handles {
-                handle.join().unwrap();
-            }
-
-            let mut frame_glob = tmp_dir.clone();
-            frame_glob.push(format!("frame_{}_%d.png", uuid));
-
-            let iter = ffmpeg_sidecar::command::FfmpegCommand::new()
-                .rate(60.0)
-                .args(["-pattern_type", "sequence"])
-                .input(frame_glob.to_str().unwrap())
+            let mut child = ffmpeg_sidecar::command::FfmpegCommand::new()
+                .args([
+                    "-f",
+                    "rawvideo",
+                    "-pix_fmt",
+                    "rgb24",
+                    "-s",
+                    format!("{}x{}", width, height).as_str(),
+                    "-r",
+                    "60",
+                ])
+                .input("-")
                 .args(["-crf", "5"])
                 .pix_fmt("yuv420p")
                 .codec_video("libx264")
@@ -160,13 +145,10 @@ impl ScreenRecorder {
                 .print_command()
                 .overwrite()
                 .spawn()
-                .unwrap()
-                .iter()
                 .unwrap();
 
-            for message in iter.filter_errors() {
-                eprintln!("{:#?}", message);
-            }
+            let mut stdin = child.take_stdin().unwrap();
+            stdin.write_all(bmp_frames.as_slice()).unwrap();
 
             sender.send(ScreenRecorderMessage::Done).unwrap();
         });
