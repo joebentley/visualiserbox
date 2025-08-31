@@ -20,12 +20,7 @@ fn next_available_video_path() -> std::io::Result<Option<std::path::PathBuf>> {
     Ok(None)
 }
 
-fn path_relative_to_executable(font_file_name: &str) -> std::io::Result<std::path::PathBuf> {
-    let mut cwd = std::env::current_exe()?;
-    cwd.pop();
-    cwd.push(font_file_name);
-    Ok(cwd)
-}
+const DEJAVU_SANS: &[u8] = include_bytes!("DejaVuSans.ttf");
 
 struct AppState {
     input: String,
@@ -75,12 +70,7 @@ fn main() -> anyhow::Result<()> {
     let scaled_width = width / scale;
     let scaled_height = height / scale;
 
-    let font = rl.load_font(
-        &thread,
-        path_relative_to_executable("DejaVuSans.ttf")?
-            .to_str()
-            .unwrap(),
-    )?;
+    let font = rl.load_font_from_memory(&thread, ".ttf", DEJAVU_SANS, 32, None)?;
 
     let screen_recorder_length = config.video_frames as usize;
 
