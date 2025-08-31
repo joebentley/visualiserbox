@@ -34,15 +34,52 @@ impl Stack {
 
     pub fn execute(&mut self, instruction: char) {
         match instruction {
+            // Stack functions
             'x' => {
+                // swap
                 let val1 = self.pop();
                 let val2 = self.pop();
                 self.push(val1);
                 self.push(val2);
             }
+            'd' => {
+                // duplicate
+                let val = self.pop();
+                self.push(val);
+                self.push(val);
+            }
+            '.' => {
+                // pop
+                self.pop();
+            }
+            't' => {
+                // tuck x1 x2 -- x1 x2 x1
+                let val1 = self.pop();
+                let val2 = self.pop();
+                self.push(val1);
+                self.push(val2);
+                self.push(val1);
+            }
+            'q' => {
+                // duplicate under x1 x2 -- x1 x2 x2
+                let val1 = self.pop();
+                let val2 = self.pop();
+                self.push(val2);
+                self.push(val2);
+                self.push(val1);
+            }
+            // Maths functions
             '^' => {
                 let (a, b) = self.pop2();
                 self.push(((a as i32) ^ (b as i32)) as f32);
+            }
+            '&' => {
+                let (a, b) = self.pop2();
+                self.push(((a as i32) & (b as i32)) as f32);
+            }
+            '|' => {
+                let (a, b) = self.pop2();
+                self.push(((a as i32) | (b as i32)) as f32);
             }
             '+' => {
                 let val = self.pop() + self.pop();
@@ -81,6 +118,25 @@ impl Stack {
                 let val = self.pop();
                 let val2 = self.pop();
                 self.push(val * val2.cos());
+            }
+            'm' => {
+                let val = self.pop();
+                let val2 = self.pop();
+                self.push(val.max(val2));
+            }
+            '%' => {
+                let val = self.pop();
+                let val2 = self.pop();
+                self.push(val % val2);
+            }
+            'r' => {
+                let val = self.pop();
+                let val2 = self.pop();
+                self.push(val2 * rand::random::<f32>() + val);
+            }
+            'n' => {
+                let val = self.pop();
+                self.push(-val);
             }
             _ => {}
         }
