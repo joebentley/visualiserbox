@@ -22,6 +22,24 @@ fn next_available_video_path() -> std::io::Result<Option<std::path::PathBuf>> {
 
 const DEJAVU_SANS: &[u8] = include_bytes!("DejaVuSans.ttf");
 
+fn draw_text(
+    d: &mut RaylibDrawHandle,
+    font: &Font,
+    text: impl AsRef<str>,
+    x: i32,
+    y: i32,
+    size: i32,
+) {
+    d.draw_text_ex(
+        font,
+        text.as_ref(),
+        Vector2::new(x as f32, y as f32),
+        size as f32,
+        0.0,
+        Color::NAVAJOWHITE,
+    );
+}
+
 struct AppState {
     input: String,
     screen_recorder: recorder::ScreenRecorder,
@@ -122,47 +140,17 @@ fn main() -> anyhow::Result<()> {
                     );
                 }
             }
-            d.draw_text_ex(
-                &font,
-                debug_string.as_str(),
-                Vector2::new(width as f32 - 150.0, 20.0),
-                30.0,
-                0.0,
-                Color::NAVAJOWHITE,
-            );
-
-            d.draw_text_ex(
-                &font,
-                &app_state.input,
-                Vector2::new(20.0, 20.0),
-                40.0,
-                0.0,
-                Color::NAVAJOWHITE,
-            );
-
+            draw_text(&mut d, &font, debug_string, width - 150, 20, 30);
+            draw_text(&mut d, &font, &app_state.input, 20, 20, 40);
             if config.show_fps {
-                d.draw_text_ex(
-                    &font,
-                    fps.round().to_string().as_str(),
-                    Vector2::new(width as f32 - 80.0, 400.0),
-                    40.0,
-                    0.0,
-                    Color::NAVAJOWHITE,
-                );
+                draw_text(&mut d, &font, fps.round().to_string(), width - 80, 400, 40);
             }
 
             if app_state.screen_recorder_state.is_saving() {
                 let text = app_state
                     .screen_recorder_state
                     .progress_string(screen_recorder_length);
-                d.draw_text_ex(
-                    &font,
-                    text.as_str(),
-                    Vector2::new(10.0, 400.0),
-                    30.0,
-                    0.0,
-                    Color::NAVAJOWHITE,
-                );
+                draw_text(&mut d, &font, text, 10, 400, 30);
             }
         }
 
