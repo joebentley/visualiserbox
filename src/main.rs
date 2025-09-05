@@ -75,6 +75,7 @@ struct AppState {
     input: String,
     screen_recorder: recorder::ScreenRecorder,
     screen_recorder_state: recorder::ScreenRecorderState,
+    time_offset: f64,
 }
 
 impl AppState {
@@ -95,6 +96,9 @@ impl AppState {
                 }
                 "C-k" => {
                     self.input.clear();
+                }
+                "C-t" => {
+                    self.time_offset = rl.get_time();
                 }
                 &_ => {
                     if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
@@ -139,11 +143,12 @@ fn main() -> anyhow::Result<()> {
         input: String::new(),
         screen_recorder: recorder::ScreenRecorder::new(screen_recorder_length, progress_sender),
         screen_recorder_state: recorder::ScreenRecorderState::new(progress_receiver),
+        time_offset: 0.0,
     };
 
     while !rl.window_should_close() {
         let fps = 1.0 / rl.get_frame_time();
-        let t = rl.get_time();
+        let t = rl.get_time() - app_state.time_offset;
 
         let mouse_position = rl.get_mouse_position();
         let (mx, my) = (
