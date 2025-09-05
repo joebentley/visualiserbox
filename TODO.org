@@ -1,8 +1,9 @@
 
-* TODO Allow resetting time
-This would be useful for resetting the state of the VM since the
-calculations are based on absolute time
-* TODO Add shortcut to delete the whole input buffer
+* TODO Add audio
+* TODO Parallelise pixel calculation or use GPU
+Should be easy to parallelise since the state is totally independent
+for each pixel, however this is really what the GPU is for. Using the
+GPU will add a huge amount of complexity though.
 * TODO Add help screen for basic info and keyboard shortcuts
 * TODO Parallelise video rendering
 When moving to using the pipe, all parallelisation was removed.
@@ -12,6 +13,10 @@ save_as_video function. Should consider using the anyhow crate
 
 This is difficult in the save_as_video function as it is totally
 asynchronous, it just launches a thread.
+* DONE Allow resetting time
+This would be useful for resetting the state of the VM since the
+calculations are based on absolute time
+* DONE Add shortcut to delete the whole input buffer
 * DONE Try using pipe instead of files for ffmpeg
 Saving the image frames as pngs takes too long. We can try pipeing the
 images from memory to the ffmpeg stdin 
