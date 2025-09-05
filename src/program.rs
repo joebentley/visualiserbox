@@ -1,7 +1,8 @@
 use crate::ringbuffer::RingBuffer;
 
-pub const ALLOWED: [char; 19] = [
+pub const ALLOWED: [char; 20] = [
     'x', 'd', '.', 't', 'q', '^', '&', '|', '+', '-', '*', '/', 'l', 'e', 'c', 'm', '%', 'r', 'n',
+    'b',
 ];
 
 pub struct Stack {
@@ -141,6 +142,14 @@ impl Stack {
             'n' => {
                 let val = self.pop();
                 self.push(-val);
+            }
+            // Lock brightness
+            'b' => {
+                let val = self.pop();
+                let val2 = self.pop();
+                self.push(1.0);
+                self.push(val2);
+                self.push(val);
             }
             _ => {}
         }
