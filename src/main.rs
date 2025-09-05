@@ -93,7 +93,9 @@ impl AppState {
                         self.screen_recorder.save_as_video(path.to_str().unwrap());
                     }
                 }
-
+                "C-k" => {
+                    self.input.clear();
+                }
                 &_ => {
                     if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
                         self.input = s + &self.input
