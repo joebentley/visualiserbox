@@ -40,6 +40,37 @@ fn draw_text(
     );
 }
 
+fn keystring(rl: &mut RaylibHandle) -> Option<String> {
+    let mut s = String::new();
+
+    if rl.is_key_down(KeyboardKey::KEY_LEFT_CONTROL)
+        || rl.is_key_down(KeyboardKey::KEY_RIGHT_CONTROL)
+    {
+        s = "C-".to_string();
+    } else if rl.is_key_down(KeyboardKey::KEY_LEFT_ALT)
+        || rl.is_key_down(KeyboardKey::KEY_RIGHT_ALT)
+    {
+        s = "M-".to_string();
+    }
+
+    // Need to handle the next character specially here if either were
+    // pressed since get_char_pressed will be None if ctrl or alt is
+    // held down. Note, this assumes QWERTY layout
+    if !s.is_empty()
+        && let Some(c) = rl.get_key_pressed_number()
+    {
+        let mut c = c as u8 as char;
+        c.make_ascii_lowercase();
+        if c.is_alphanumeric() {
+            return Some(s + &c.to_string());
+        } else {
+            return None;
+        }
+    }
+
+    rl.get_char_pressed().map(|c| c.to_string())
+}
+
 struct AppState {
     input: String,
     screen_recorder: recorder::ScreenRecorder,
@@ -52,18 +83,26 @@ impl AppState {
             self.screen_recorder_state.update();
         }
 
-        if let Some(c) = rl.get_char_pressed() {
-            if c == 's' {
-                if !self.screen_recorder_state.is_saving()
-                    && let Some(path) = next_available_video_path()?
-                {
-                    self.screen_recorder_state.start();
-                    self.screen_recorder.save_as_video(path.to_str().unwrap());
+        if let Some(s) = keystring(rl) {
+            match s.as_str() {
+                "C-s" => {
+                    if !self.screen_recorder_state.is_saving()
+                        && let Some(path) = next_available_video_path()?
+                    {
+                        self.screen_recorder_state.start();
+                        self.screen_recorder.save_as_video(path.to_str().unwrap());
+                    }
                 }
-            } else {
-                self.input = c.to_string() + &self.input;
+
+                &_ => {
+                    if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
+                        self.input = s + &self.input
+                    }
+                }
             }
-        } else if !self.input.is_empty()
+        }
+
+        if !self.input.is_empty()
             && (rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE)
                 || rl.is_key_pressed_repeat(KeyboardKey::KEY_BACKSPACE))
         {

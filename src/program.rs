@@ -1,5 +1,9 @@
 use crate::ringbuffer::RingBuffer;
 
+pub const ALLOWED: [char; 19] = [
+    'x', 'd', '.', 't', 'q', '^', '&', '|', '+', '-', '*', '/', 'l', 'e', 'c', 'm', '%', 'r', 'n',
+];
+
 pub struct Stack {
     stack: Vec<f32>,
     ring_buffer: RingBuffer<f32>,
