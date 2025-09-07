@@ -183,7 +183,7 @@ impl Stack {
     }
 }
 
-pub fn execute_string(input: &str, x: i32, y: i32, t: f64) -> Stack {
+pub fn execute_string(input: &str, x: u32, y: u32, t: f64) -> Stack {
     let mut stack = Stack::new([x as f32, y as f32, t as f32]);
     stack.push(t as f32);
     stack.push(y as f32);
