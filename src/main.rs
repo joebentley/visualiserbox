@@ -173,7 +173,8 @@ fn main() -> anyhow::Result<()> {
 
             for y in 0..scaled_height {
                 for x in 0..scaled_width {
-                    let mut stack = program::execute_string(&app_state.input, x, y, t);
+                    let mut stack =
+                        program::execute_string(&app_state.input, [x as f32, y as f32, t as f32]);
 
                     if y == my && x == mx {
                         for value in stack.get_stack() {

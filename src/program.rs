@@ -183,11 +183,11 @@ impl Stack {
     }
 }
 
-pub fn execute_string(input: &str, x: i32, y: i32, t: f64) -> Stack {
-    let mut stack = Stack::new([x as f32, y as f32, t as f32]);
-    stack.push(t as f32);
-    stack.push(y as f32);
-    stack.push(x as f32);
+pub fn execute_string(input: &str, initial_values: [f32; 3]) -> Stack {
+    let mut stack = Stack::new(initial_values);
+    stack.push(initial_values[2]);
+    stack.push(initial_values[1]);
+    stack.push(initial_values[0]);
 
     for c in input.chars().rev() {
         stack.execute(c);
