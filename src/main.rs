@@ -1,11 +1,15 @@
 mod config;
 mod program;
 mod recorder;
+mod rect;
 mod ringbuffer;
+mod sound;
 
 use std::sync::mpsc;
 
 use raylib::prelude::*;
+
+use crate::sound::process_sample;
 
 fn next_available_video_path() -> std::io::Result<Option<std::path::PathBuf>> {
     let cwd = std::env::current_dir()?;
@@ -118,7 +122,7 @@ impl AppState {
     }
 }
 
-const MAX_SAMPLES_PER_UPDATE: u32 = 4096;
+const MAX_SAMPLES_PER_UPDATE: u32 = 2048;
 
 fn main() -> anyhow::Result<()> {
     colog::init();
@@ -145,6 +149,7 @@ fn main() -> anyhow::Result<()> {
     ra.set_audio_stream_buffer_size_default(MAX_SAMPLES_PER_UPDATE as i32);
     let mut stream = ra.new_audio_stream(44100, 16, 1);
     stream.play();
+    let mut data = [0i16; MAX_SAMPLES_PER_UPDATE as usize];
 
     let mut app_state = AppState {
         input: String::new(),
@@ -152,6 +157,8 @@ fn main() -> anyhow::Result<()> {
         screen_recorder_state: recorder::ScreenRecorderState::new(progress_receiver),
         time_offset: 0.0,
     };
+
+    let mut frames: u64 = 0;
 
     while !rl.window_should_close() {
         let fps = 1.0 / rl.get_frame_time();
@@ -164,6 +171,14 @@ fn main() -> anyhow::Result<()> {
         );
 
         app_state.update(&mut rl)?;
+
+        if stream.is_processed() {
+            for frame in &mut data {
+                *frame = process_sample(&app_state.input, frames, mx, my);
+                frames += 1;
+            }
+            stream.update(&data[..MAX_SAMPLES_PER_UPDATE as usize / 2]);
+        }
 
         {
             let mut d = rl.begin_drawing(&thread);
