@@ -118,6 +118,8 @@ impl AppState {
     }
 }
 
+const MAX_SAMPLES_PER_UPDATE: u32 = 4096;
+
 fn main() -> anyhow::Result<()> {
     colog::init();
 
@@ -138,6 +140,11 @@ fn main() -> anyhow::Result<()> {
     let screen_recorder_length = config.video_frames as usize;
 
     let (progress_sender, progress_receiver) = mpsc::channel();
+
+    let ra = raylib::core::audio::RaylibAudio::init_audio_device()?;
+    ra.set_audio_stream_buffer_size_default(MAX_SAMPLES_PER_UPDATE as i32);
+    let mut stream = ra.new_audio_stream(44100, 16, 1);
+    stream.play();
 
     let mut app_state = AppState {
         input: String::new(),
