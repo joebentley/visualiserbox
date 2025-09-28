@@ -1,5 +1,14 @@
 
-* TODO Add audio
+* TODO Add proper text editing
+* TODO Add sequencing between programs
+- Fade?
+- Each line should be a program
+- Marker going down left side of lines depending on which program is
+  currently enabled
+* TODO Allow saving programs
+* TODO Random program commands
+- Random program (C-r)
+- Rotate program left/right
 * TODO Parallelise pixel calculation or use GPU
 Should be easy to parallelise since the state is totally independent
 for each pixel, however this is really what the GPU is for. Using the
@@ -14,6 +23,7 @@ thread.
 Since we aren't saving as a PNG on disc anymore, we really don't need
 this dependency, and it's quite a big one, especially with the default
 features enabled.
+* DONE Add audio
 * DONE Better error handling
 In few places, there are a lot of unwraps, such as in the
 save_as_video function. Should consider using the anyhow crate.
