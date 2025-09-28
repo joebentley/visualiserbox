@@ -174,7 +174,6 @@ fn main() -> anyhow::Result<()> {
 
         if config.sound && stream.is_processed() {
             frames = sound::fill_buffer(&mut data, &app_state.input, frames, mx, my);
-
             stream.update(&data[..MAX_SAMPLES_PER_UPDATE as usize / 2]);
         }
 
