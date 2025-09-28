@@ -9,8 +9,6 @@ use std::sync::mpsc;
 
 use raylib::prelude::*;
 
-use crate::sound::process_sample;
-
 fn next_available_video_path() -> std::io::Result<Option<std::path::PathBuf>> {
     let cwd = std::env::current_dir()?;
     for i in 0..999 {
@@ -173,10 +171,8 @@ fn main() -> anyhow::Result<()> {
         app_state.update(&mut rl)?;
 
         if stream.is_processed() {
-            for frame in &mut data {
-                *frame = process_sample(&app_state.input, frames, mx, my);
-                frames += 1;
-            }
+            frames = sound::fill_buffer(&mut data, &app_state.input, frames, mx, my);
+
             stream.update(&data[..MAX_SAMPLES_PER_UPDATE as usize / 2]);
         }
 
