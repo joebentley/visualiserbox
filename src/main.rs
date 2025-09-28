@@ -146,7 +146,9 @@ fn main() -> anyhow::Result<()> {
     let ra = raylib::core::audio::RaylibAudio::init_audio_device()?;
     ra.set_audio_stream_buffer_size_default(MAX_SAMPLES_PER_UPDATE as i32);
     let mut stream = ra.new_audio_stream(44100, 16, 1);
-    stream.play();
+    if config.sound {
+        stream.play();
+    }
     let mut data = [0i16; MAX_SAMPLES_PER_UPDATE as usize];
 
     let mut app_state = AppState {
@@ -170,7 +172,7 @@ fn main() -> anyhow::Result<()> {
 
         app_state.update(&mut rl)?;
 
-        if stream.is_processed() {
+        if config.sound && stream.is_processed() {
             frames = sound::fill_buffer(&mut data, &app_state.input, frames, mx, my);
 
             stream.update(&data[..MAX_SAMPLES_PER_UPDATE as usize / 2]);

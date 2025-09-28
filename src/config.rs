@@ -9,6 +9,7 @@ pub struct Config {
     pub video_frames: u32,
     pub show_fps: bool,
     pub scale: u32,
+    pub sound: bool,
 }
 
 impl Default for Config {
@@ -17,6 +18,7 @@ impl Default for Config {
             video_frames: 200,
             show_fps: false,
             scale: 4,
+            sound: false,
         }
     }
 }
