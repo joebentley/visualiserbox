@@ -1,3 +1,4 @@
+mod app;
 mod config;
 mod program;
 mod recorder;
@@ -8,19 +9,6 @@ mod sound;
 use std::sync::mpsc;
 
 use raylib::prelude::*;
-
-fn next_available_video_path() -> std::io::Result<Option<std::path::PathBuf>> {
-    let cwd = std::env::current_dir()?;
-    for i in 0..999 {
-        let video_name = format!("video_{:03}.mp4", i);
-        let mut video_path = cwd.clone();
-        video_path.push(video_name);
-        if !video_path.try_exists()? {
-            return Ok(Some(video_path));
-        }
-    }
-    Ok(None)
-}
 
 const DEJAVU_SANS: &[u8] = include_bytes!("DejaVuSans.ttf");
 
@@ -40,84 +28,6 @@ fn draw_text(
         0.0,
         Color::NAVAJOWHITE,
     );
-}
-
-fn keystring(rl: &mut RaylibHandle) -> Option<String> {
-    let mut s = String::new();
-
-    if rl.is_key_down(KeyboardKey::KEY_LEFT_CONTROL)
-        || rl.is_key_down(KeyboardKey::KEY_RIGHT_CONTROL)
-    {
-        s = "C-".to_string();
-    } else if rl.is_key_down(KeyboardKey::KEY_LEFT_ALT)
-        || rl.is_key_down(KeyboardKey::KEY_RIGHT_ALT)
-    {
-        s = "M-".to_string();
-    }
-
-    // Need to handle the next character specially here if either were
-    // pressed since get_char_pressed will be None if ctrl or alt is
-    // held down. Note, this assumes QWERTY layout
-    if !s.is_empty()
-        && let Some(c) = rl.get_key_pressed_number()
-    {
-        let mut c = c as u8 as char;
-        c.make_ascii_lowercase();
-        if c.is_alphanumeric() {
-            return Some(s + &c.to_string());
-        } else {
-            return None;
-        }
-    }
-
-    rl.get_char_pressed().map(|c| c.to_string())
-}
-
-struct AppState {
-    input: String,
-    screen_recorder: recorder::ScreenRecorder,
-    screen_recorder_state: recorder::ScreenRecorderState,
-    time_offset: f64,
-}
-
-impl AppState {
-    fn update(&mut self, rl: &mut RaylibHandle) -> anyhow::Result<()> {
-        if self.screen_recorder_state.is_saving() {
-            self.screen_recorder_state.update();
-        }
-
-        if let Some(s) = keystring(rl) {
-            match s.as_str() {
-                "C-s" => {
-                    if !self.screen_recorder_state.is_saving()
-                        && let Some(path) = next_available_video_path()?
-                    {
-                        self.screen_recorder_state.start();
-                        self.screen_recorder.save_as_video(path.to_str().unwrap());
-                    }
-                }
-                "C-k" => {
-                    self.input.clear();
-                }
-                "C-t" => {
-                    self.time_offset = rl.get_time();
-                }
-                &_ => {
-                    if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
-                        self.input = s + &self.input
-                    }
-                }
-            }
-        }
-
-        if !self.input.is_empty()
-            && (rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE)
-                || rl.is_key_pressed_repeat(KeyboardKey::KEY_BACKSPACE))
-        {
-            self.input = self.input[1..].to_string();
-        }
-        Ok(())
-    }
 }
 
 const MAX_SAMPLES_PER_UPDATE: u32 = 2048;
@@ -151,7 +61,7 @@ fn main() -> anyhow::Result<()> {
     }
     let mut data = [0i16; MAX_SAMPLES_PER_UPDATE as usize];
 
-    let mut app_state = AppState {
+    let mut app_state = crate::app::AppState {
         input: String::new(),
         screen_recorder: recorder::ScreenRecorder::new(screen_recorder_length, progress_sender),
         screen_recorder_state: recorder::ScreenRecorderState::new(progress_receiver),
