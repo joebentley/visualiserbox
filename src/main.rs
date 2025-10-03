@@ -1,34 +1,18 @@
 mod app;
 mod config;
+mod drawing;
 mod program;
 mod recorder;
 mod rect;
 mod ringbuffer;
 mod sound;
 
+use crate::drawing::draw_text;
 use std::sync::mpsc;
 
 use raylib::prelude::*;
 
 const DEJAVU_SANS: &[u8] = include_bytes!("DejaVuSans.ttf");
-
-fn draw_text(
-    d: &mut RaylibDrawHandle,
-    font: &Font,
-    text: impl AsRef<str>,
-    x: i32,
-    y: i32,
-    size: i32,
-) {
-    d.draw_text_ex(
-        font,
-        text.as_ref(),
-        Vector2::new(x as f32, y as f32),
-        size as f32,
-        0.0,
-        Color::NAVAJOWHITE,
-    );
-}
 
 const MAX_SAMPLES_PER_UPDATE: u32 = 2048;
 
