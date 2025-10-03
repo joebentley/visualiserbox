@@ -24,7 +24,10 @@ fn main() -> anyhow::Result<()> {
 
     let config = config::Config::from_file("config.toml")?;
 
-    let (mut rl, thread) = raylib::init().size(640, 480).title("Hello, World").build();
+    let (mut rl, thread) = raylib::init()
+        .size(640, 480)
+        .title("Visualiser Box")
+        .build();
 
     let width = rl.get_screen_width();
     let height = rl.get_screen_height();
