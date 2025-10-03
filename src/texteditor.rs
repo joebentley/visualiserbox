@@ -58,7 +58,7 @@ impl TextEditor {
     }
 
     pub fn backspace(&mut self) {
-        if !self.lines[self.current_line].is_empty() {
+        if self.lines[self.current_line].len() > self.cursor {
             self.lines[self.current_line].remove(self.cursor);
             self.clamp_cursor()
         }
