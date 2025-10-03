@@ -11,14 +11,14 @@ struct ImageData {
 }
 
 impl ImageData {
-    fn to_rgbimage(&self) -> image::RgbImage {
-        let mut rgb_image = image::RgbImage::new(self.width, self.height);
-        for (i, color) in self.colors.iter().enumerate() {
-            let x = i % (self.width as usize);
-            let y = i / (self.width as usize);
-            rgb_image.put_pixel(x as u32, y as u32, image::Rgb([color.r, color.g, color.b]));
+    fn to_rgb_u8_vec(&self) -> Vec<u8> {
+        let mut rgb_u8_vec = Vec::new();
+        for color in self.colors.iter() {
+            rgb_u8_vec.push(color.r);
+            rgb_u8_vec.push(color.g);
+            rgb_u8_vec.push(color.b);
         }
-        rgb_image
+        rgb_u8_vec
     }
 }
 
@@ -119,8 +119,8 @@ impl ScreenRecorder {
             let mut bmp_frames = Vec::new();
 
             for image_data in image_datas {
-                let rgb_frame = image_data.to_rgbimage();
-                bmp_frames.append(&mut rgb_frame.into_raw());
+                let mut rgb_frame_bytes = image_data.to_rgb_u8_vec();
+                bmp_frames.append(&mut rgb_frame_bytes);
                 sender
                     .send(ScreenRecorderMessage::ProcessingFrameStep)
                     .unwrap();

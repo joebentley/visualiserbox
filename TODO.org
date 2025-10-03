@@ -19,7 +19,7 @@ When moving to using the pipe, all parallelisation was removed.
 * TODO Error handling in video saving
 This is difficult as it is totally asynchronous, it just launches a
 thread.
-* TODO Remove image dependency
+* DONE Remove image dependency
 Since we aren't saving as a PNG on disc anymore, we really don't need
 this dependency, and it's quite a big one, especially with the default
 features enabled.
