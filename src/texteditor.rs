@@ -1,4 +1,5 @@
-use crate::drawing::draw_text;
+use crate::{drawing::draw_text, program};
+use rand::seq::IndexedRandom;
 use raylib::prelude::*;
 
 pub struct TextEditor {
@@ -70,6 +71,13 @@ impl TextEditor {
 
     pub fn current_line(&self) -> &str {
         self.lines[self.current_line].as_str()
+    }
+
+    pub fn randomise_line(&mut self) {
+        self.clear();
+        let mut rng = rand::rng();
+        let sampled: [char; 8] = program::ALLOWED.choose_multiple_array(&mut rng).unwrap();
+        self.lines[self.current_line] = sampled.iter().collect();
     }
 
     fn clamp_cursor(&mut self) {

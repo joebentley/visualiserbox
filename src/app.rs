@@ -133,6 +133,9 @@ impl AppState {
                 "C-t" => {
                     self.time_offset = provider.get_time();
                 }
+                "C-r" => {
+                    self.text_editor.randomise_line();
+                }
                 &_ => {
                     if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
                         self.text_editor.insert_char(s.chars().nth(0).unwrap());
