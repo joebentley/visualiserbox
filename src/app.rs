@@ -1,6 +1,13 @@
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
+
 use crate::program;
 use crate::recorder;
-use raylib::{ffi::KeyboardKey, RaylibHandle};
+use crate::recorder::ScreenRecorder;
+use crate::recorder::ScreenRecorderMessage;
+use crate::recorder::ScreenRecorderState;
+use crate::texteditor::TextEditor;
+use raylib::prelude::*;
 
 pub trait InputProvider {
     fn is_key_down(&self, key: KeyboardKey) -> bool;
@@ -69,7 +76,7 @@ impl TimeProvider for RaylibHandle {
 }
 
 pub struct AppState {
-    pub input: String,
+    text_editor: TextEditor,
     pub screen_recorder: recorder::ScreenRecorder,
     pub screen_recorder_state: recorder::ScreenRecorderState,
     pub time_offset: f64,
@@ -89,6 +96,19 @@ fn next_available_video_path() -> std::io::Result<Option<std::path::PathBuf>> {
 }
 
 impl AppState {
+    pub fn new(
+        screen_recorder_length: usize,
+        progress_sender: Sender<ScreenRecorderMessage>,
+        progress_receiver: Receiver<ScreenRecorderMessage>,
+    ) -> Self {
+        Self {
+            text_editor: TextEditor::new(),
+            screen_recorder: ScreenRecorder::new(screen_recorder_length, progress_sender),
+            screen_recorder_state: ScreenRecorderState::new(progress_receiver),
+            time_offset: 0.0,
+        }
+    }
+
     pub fn update<T: InputProvider + TimeProvider>(
         &mut self,
         provider: &mut T,
@@ -108,25 +128,47 @@ impl AppState {
                     }
                 }
                 "C-k" => {
-                    self.input.clear();
+                    self.text_editor.clear();
                 }
                 "C-t" => {
                     self.time_offset = provider.get_time();
                 }
                 &_ => {
                     if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
-                        self.input = s + &self.input
+                        self.text_editor.insert_char(s.chars().nth(0).unwrap());
                     }
                 }
             }
         }
 
-        if !self.input.is_empty()
-            && (provider.is_key_pressed(KeyboardKey::KEY_BACKSPACE)
-                || provider.is_key_pressed_repeat(KeyboardKey::KEY_BACKSPACE))
+        if provider.is_key_pressed(KeyboardKey::KEY_DOWN) {
+            self.text_editor.next_line();
+        } else if provider.is_key_pressed(KeyboardKey::KEY_UP) {
+            self.text_editor.prev_line();
+        } else if provider.is_key_pressed(KeyboardKey::KEY_LEFT) {
+            self.text_editor.move_left();
+        } else if provider.is_key_pressed(KeyboardKey::KEY_RIGHT) {
+            self.text_editor.move_right();
+        } else if provider.is_key_pressed(KeyboardKey::KEY_BACKSPACE)
+            || provider.is_key_pressed_repeat(KeyboardKey::KEY_BACKSPACE)
         {
-            self.input = self.input[1..].to_string();
+            self.text_editor.backspace();
         }
         Ok(())
+    }
+
+    pub fn current_input_line(&self) -> &str {
+        self.text_editor.current_line()
+    }
+
+    pub fn draw_input_text(
+        &self,
+        d: &mut RaylibDrawHandle,
+        font: &Font,
+        x: i32,
+        y: i32,
+        size: i32,
+    ) {
+        self.text_editor.draw(d, font, x, y, size);
     }
 }

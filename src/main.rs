@@ -6,6 +6,7 @@ mod recorder;
 mod rect;
 mod ringbuffer;
 mod sound;
+mod texteditor;
 
 use crate::drawing::draw_text;
 use std::sync::mpsc;
@@ -45,12 +46,8 @@ fn main() -> anyhow::Result<()> {
     }
     let mut data = [0i16; MAX_SAMPLES_PER_UPDATE as usize];
 
-    let mut app_state = crate::app::AppState {
-        input: String::new(),
-        screen_recorder: recorder::ScreenRecorder::new(screen_recorder_length, progress_sender),
-        screen_recorder_state: recorder::ScreenRecorderState::new(progress_receiver),
-        time_offset: 0.0,
-    };
+    let mut app_state =
+        crate::app::AppState::new(screen_recorder_length, progress_sender, progress_receiver);
 
     let mut frames: u64 = 0;
 
@@ -67,7 +64,7 @@ fn main() -> anyhow::Result<()> {
         app_state.update(&mut rl)?;
 
         if config.sound && stream.is_processed() {
-            frames = sound::fill_buffer(&mut data, &app_state.input, frames, mx, my);
+            frames = sound::fill_buffer(&mut data, app_state.current_input_line(), frames, mx, my);
             stream.update(&data[..MAX_SAMPLES_PER_UPDATE as usize / 2]);
         }
 
@@ -79,8 +76,10 @@ fn main() -> anyhow::Result<()> {
 
             for y in 0..scaled_height {
                 for x in 0..scaled_width {
-                    let mut stack =
-                        program::execute_string(&app_state.input, [x as f32, y as f32, t as f32]);
+                    let mut stack = program::execute_string(
+                        app_state.current_input_line(),
+                        [x as f32, y as f32, t as f32],
+                    );
 
                     if y == my && x == mx {
                         for value in stack.get_stack() {
@@ -101,7 +100,7 @@ fn main() -> anyhow::Result<()> {
                 }
             }
             draw_text(&mut d, &font, debug_string, width - 150, 20, 30);
-            draw_text(&mut d, &font, &app_state.input, 20, 20, 40);
+            app_state.draw_input_text(&mut d, &font, 20, 20, 40);
             if config.show_fps {
                 draw_text(&mut d, &font, fps.round().to_string(), width - 80, 400, 40);
             }
