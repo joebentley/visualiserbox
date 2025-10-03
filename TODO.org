@@ -19,6 +19,8 @@ When moving to using the pipe, all parallelisation was removed.
 This is difficult as it is totally asynchronous, it just launches a
 thread.
 * TODO Add keyboard shortcut that duplicates a line to the next line
+* TODO Allow pushing audio loop back onto stack on macOS
+* TODO Build .app bundle on macOS
 * DONE Add proper text editing
 * DONE Remove image dependency
 Since we aren't saving as a PNG on disc anymore, we really don't need
