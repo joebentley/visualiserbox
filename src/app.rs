@@ -142,6 +142,18 @@ impl AppState {
                 "C-]" => {
                     self.text_editor.rotate_line_right();
                 }
+                "C-p" => {
+                    self.text_editor.prev_line();
+                }
+                "C-n" => {
+                    self.text_editor.next_line();
+                }
+                "C-b" => {
+                    self.text_editor.move_left();
+                }
+                "C-f" => {
+                    self.text_editor.move_right();
+                }
                 &_ => {
                     if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
                         self.text_editor.insert_char(s.chars().nth(0).unwrap());
