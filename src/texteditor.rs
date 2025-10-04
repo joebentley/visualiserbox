@@ -69,6 +69,10 @@ impl TextEditor {
         self.cursor = 0;
     }
 
+    pub fn kill_to_end(&mut self) {
+        self.lines[self.current_line].truncate(self.cursor);
+    }
+
     pub fn current_line(&self) -> &str {
         self.lines[self.current_line].as_str()
     }

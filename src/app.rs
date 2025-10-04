@@ -127,9 +127,6 @@ impl AppState {
                         self.screen_recorder.save_as_video(path.to_str().unwrap());
                     }
                 }
-                "C-k" => {
-                    self.text_editor.clear();
-                }
                 "C-t" => {
                     self.time_offset = provider.get_time();
                 }
@@ -153,6 +150,9 @@ impl AppState {
                 }
                 "C-f" => {
                     self.text_editor.move_right();
+                }
+                "C-k" => {
+                    self.text_editor.kill_to_end();
                 }
                 &_ => {
                     if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
