@@ -1,3 +1,5 @@
+use raylib::color::Color;
+
 use crate::ringbuffer::RingBuffer;
 
 pub const ALLOWED: [char; 20] = [
@@ -194,4 +196,25 @@ pub fn execute_string(input: &str, initial_values: [f32; 3]) -> Stack {
     }
 
     stack
+}
+
+pub fn execute_string_to_color(input: &str, initial_values: [f32; 3]) -> Color {
+    let mut stack = execute_string(input, initial_values);
+    Color::color_from_hsv(stack.pop(), stack.pop(), stack.pop())
+}
+
+pub enum BlendMode {
+    One(String),
+    Two(String, String, f32),
+}
+
+pub fn execute_blended_to_color(blend_mode: BlendMode, initial_values: [f32; 3]) -> Color {
+    match blend_mode {
+        BlendMode::One(s) => execute_string_to_color(s.as_str(), initial_values),
+        BlendMode::Two(s1, s2, f) => {
+            let c1 = execute_string_to_color(s1.as_str(), initial_values);
+            let c2 = execute_string_to_color(s2.as_str(), initial_values);
+            c1.lerp(c2, f)
+        }
+    }
 }

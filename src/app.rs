@@ -7,6 +7,7 @@ use crate::recorder::ScreenRecorder;
 use crate::recorder::ScreenRecorderMessage;
 use crate::recorder::ScreenRecorderState;
 use crate::texteditor::TextEditor;
+use crate::utils;
 use raylib::prelude::*;
 
 pub trait InputProvider {
@@ -75,8 +76,47 @@ impl TimeProvider for RaylibHandle {
     }
 }
 
+struct ProgramAnimator {
+    t: f32,
+}
+
+impl ProgramAnimator {
+    pub fn new() -> Self {
+        Self { t: 0.0 }
+    }
+
+    pub fn get_blend_mode(
+        &self,
+        current_program: impl Into<String>,
+        next_program: impl Into<String>,
+    ) -> program::BlendMode {
+        if self.t < 0.7 {
+            program::BlendMode::One(current_program.into())
+        } else {
+            program::BlendMode::Two(
+                current_program.into(),
+                next_program.into(),
+                utils::map(0.7, 1.0, 0.0, 1.0, self.t),
+            )
+        }
+    }
+
+    pub fn tick(&mut self) {
+        self.t += 0.003;
+    }
+
+    pub fn needs_program(&self) -> bool {
+        self.t >= 1.0
+    }
+
+    pub fn reset(&mut self) {
+        self.t = 0.0;
+    }
+}
+
 pub struct AppState {
     text_editor: TextEditor,
+    program_animator: ProgramAnimator,
     pub screen_recorder: recorder::ScreenRecorder,
     pub screen_recorder_state: recorder::ScreenRecorderState,
     pub time_offset: f64,
@@ -103,6 +143,7 @@ impl AppState {
     ) -> Self {
         Self {
             text_editor: TextEditor::new(),
+            program_animator: ProgramAnimator::new(),
             screen_recorder: ScreenRecorder::new(screen_recorder_length, progress_sender),
             screen_recorder_state: ScreenRecorderState::new(progress_receiver),
             time_offset: 0.0,
@@ -181,6 +222,15 @@ impl AppState {
         {
             self.text_editor.backspace();
         }
+
+        if self.text_editor.num_non_empty_lines() >= 2 {
+            self.program_animator.tick();
+            if self.program_animator.needs_program() {
+                self.text_editor.goto_next_nonempty();
+                self.program_animator.reset();
+            }
+        }
+
         Ok(())
     }
 
@@ -197,5 +247,15 @@ impl AppState {
         size: i32,
     ) {
         self.text_editor.draw(d, font, x, y, size);
+    }
+
+    pub fn get_blend_mode(&self) -> program::BlendMode {
+        let current = self.text_editor.current_line();
+        if self.text_editor.num_non_empty_lines() <= 1 {
+            return program::BlendMode::One(current.to_owned());
+        }
+
+        let next = self.text_editor.get_next_nonempty();
+        self.program_animator.get_blend_mode(current, next)
     }
 }

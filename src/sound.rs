@@ -3,11 +3,7 @@ use raylib::{
     prelude::{RaylibDraw, RaylibDrawHandle},
 };
 
-use crate::{program, rect::IRect};
-
-fn map(input_start: f32, input_end: f32, output_start: f32, output_end: f32, input: f32) -> f32 {
-    output_start + ((output_end - output_start) * (input - input_start)) / (input_end - input_start)
-}
+use crate::{program, rect::IRect, utils};
 
 pub fn draw_buffer(d: &mut RaylibDrawHandle, audio_buffer: &[i16], bounds: IRect) {
     d.draw_rectangle(
@@ -25,7 +21,7 @@ pub fn draw_buffer(d: &mut RaylibDrawHandle, audio_buffer: &[i16], bounds: IRect
     let biggest_sample = *audio_buffer.iter().max().unwrap();
 
     for x in 0..bounds.w {
-        let sample_index = map(
+        let sample_index = utils::map(
             0.0,
             bounds.w as f32,
             0.0,
@@ -35,7 +31,7 @@ pub fn draw_buffer(d: &mut RaylibDrawHandle, audio_buffer: &[i16], bounds: IRect
         .floor() as usize;
 
         let sample = audio_buffer[sample_index];
-        let y = map(
+        let y = utils::map(
             -biggest_sample as f32,
             biggest_sample as f32,
             bounds.h as f32 - 4.0,

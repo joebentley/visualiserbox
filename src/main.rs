@@ -7,6 +7,7 @@ mod rect;
 mod ringbuffer;
 mod sound;
 mod texteditor;
+mod utils;
 
 use crate::drawing::draw_text;
 use std::sync::mpsc;
@@ -75,34 +76,17 @@ fn main() -> anyhow::Result<()> {
             let mut d = rl.begin_drawing(&thread);
             d.clear_background(Color::WHITE);
 
-            let mut debug_string = String::new();
-
             for y in 0..scaled_height {
                 for x in 0..scaled_width {
-                    let mut stack = program::execute_string(
-                        app_state.current_input_line(),
+                    let colour = program::execute_blended_to_color(
+                        app_state.get_blend_mode(),
                         [x as f32, y as f32, t as f32],
                     );
 
-                    if y == my && x == mx {
-                        for value in stack.get_stack() {
-                            debug_string += (value.to_string() + "\n").as_str();
-                        }
-                        debug_string += format!("{} {}", mx, my).as_str();
-                    }
-
-                    let (h, s, v) = (stack.pop(), stack.pop(), stack.pop());
-
-                    d.draw_rectangle(
-                        x * scale,
-                        y * scale,
-                        scale,
-                        scale,
-                        Color::color_from_hsv(h, s, v),
-                    );
+                    d.draw_rectangle(x * scale, y * scale, scale, scale, colour);
                 }
             }
-            draw_text(&mut d, &font, debug_string, width - 150, 20, 30);
+
             app_state.draw_input_text(&mut d, &font, 20, 20, 40);
             if config.show_fps {
                 draw_text(&mut d, &font, fps.round().to_string(), width - 80, 400, 40);

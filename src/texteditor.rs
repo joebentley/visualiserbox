@@ -40,16 +40,12 @@ impl TextEditor {
     }
 
     pub fn next_line(&mut self) {
-        if self.current_line < self.lines.len() {
-            self.current_line += 1;
-        }
+        self.current_line = (self.current_line + 1) % self.lines.len();
         self.clamp_cursor();
     }
 
     pub fn prev_line(&mut self) {
-        if self.current_line > 0 {
-            self.current_line -= 1;
-        }
+        self.current_line = (self.current_line - 1) % self.lines.len();
         self.clamp_cursor();
     }
 
@@ -108,6 +104,25 @@ impl TextEditor {
         }
         s.rotate_right(1);
         self.lines[self.current_line] = s.iter().collect();
+    }
+
+    pub fn num_non_empty_lines(&self) -> usize {
+        self.lines.iter().filter(|s| !s.is_empty()).count()
+    }
+
+    pub fn get_next_nonempty(&self) -> &str {
+        let mut i = (self.current_line + 1) % self.lines.len();
+        while self.lines[i].is_empty() {
+            i = (i + 1) % self.lines.len();
+        }
+        &self.lines[i]
+    }
+
+    pub fn goto_next_nonempty(&mut self) {
+        self.next_line();
+        while self.current_line().is_empty() {
+            self.next_line();
+        }
     }
 
     fn clamp_cursor(&mut self) {
