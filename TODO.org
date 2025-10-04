@@ -19,6 +19,7 @@ thread.
 * TODO Allow pushing audio loop back onto stack on macOS
 * TODO Build .app bundle on macOS
 See https://stackoverflow.com/questions/1596945/building-osx-app-bundle
+* TODO Add undo/redo functionality
 * DONE Random program commands
 - Random program (C-r)
 - Rotate program left/right
