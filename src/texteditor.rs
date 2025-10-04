@@ -53,6 +53,14 @@ impl TextEditor {
         self.clamp_cursor();
     }
 
+    pub fn start_of_line(&mut self) {
+        self.cursor = 0;
+    }
+
+    pub fn end_of_line(&mut self) {
+        self.cursor = self.current_line().len();
+    }
+
     pub fn insert_char(&mut self, c: char) {
         self.lines[self.current_line].insert(self.cursor, c);
     }

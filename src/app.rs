@@ -151,6 +151,12 @@ impl AppState {
                 "C-f" => {
                     self.text_editor.move_right();
                 }
+                "C-a" => {
+                    self.text_editor.start_of_line();
+                }
+                "C-e" => {
+                    self.text_editor.end_of_line();
+                }
                 "C-k" => {
                     self.text_editor.kill_to_end();
                 }
