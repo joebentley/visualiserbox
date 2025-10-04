@@ -80,6 +80,24 @@ impl TextEditor {
         self.lines[self.current_line] = sampled.iter().collect();
     }
 
+    pub fn rotate_line_left(&mut self) {
+        let mut s: Vec<char> = self.current_line().chars().collect();
+        if s.is_empty() {
+            return;
+        }
+        s.rotate_left(1);
+        self.lines[self.current_line] = s.iter().collect();
+    }
+
+    pub fn rotate_line_right(&mut self) {
+        let mut s: Vec<char> = self.current_line().chars().collect();
+        if s.is_empty() {
+            return;
+        }
+        s.rotate_right(1);
+        self.lines[self.current_line] = s.iter().collect();
+    }
+
     fn clamp_cursor(&mut self) {
         if self.cursor > self.lines[self.current_line].len() {
             self.cursor = self.lines[self.current_line].len();

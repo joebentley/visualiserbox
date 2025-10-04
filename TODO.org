@@ -5,9 +5,6 @@
 - Marker going down left side of lines depending on which program is
   currently enabled
 * TODO Allow saving programs
-* TODO Random program commands
-- Random program (C-r)
-- Rotate program left/right
 * TODO Parallelise pixel calculation or use GPU
 Should be easy to parallelise since the state is totally independent
 for each pixel, however this is really what the GPU is for. Using the
@@ -22,6 +19,9 @@ thread.
 * TODO Allow pushing audio loop back onto stack on macOS
 * TODO Build .app bundle on macOS
 See https://stackoverflow.com/questions/1596945/building-osx-app-bundle
+* DONE Random program commands
+- Random program (C-r)
+- Rotate program left/right
 * DONE Add proper text editing
 * DONE Remove image dependency
 Since we aren't saving as a PNG on disc anymore, we really don't need

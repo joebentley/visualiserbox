@@ -36,7 +36,7 @@ pub trait InputProvider {
             && let Some(mut c) = self.get_key_pressed()
         {
             c.make_ascii_lowercase();
-            if c.is_alphanumeric() {
+            if c.is_ascii() {
                 return Some(s + &c.to_string());
             } else {
                 return None;
@@ -135,6 +135,12 @@ impl AppState {
                 }
                 "C-r" => {
                     self.text_editor.randomise_line();
+                }
+                "C-[" => {
+                    self.text_editor.rotate_line_left();
+                }
+                "C-]" => {
+                    self.text_editor.rotate_line_right();
                 }
                 &_ => {
                     if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
