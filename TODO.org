@@ -1,4 +1,6 @@
 
+* TODO Allow pausing animation
+* TODO Fix colours in release mode
 * TODO Add sequencing between programs
 - Fade?
 - Each line should be a program
