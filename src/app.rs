@@ -78,11 +78,15 @@ impl TimeProvider for RaylibHandle {
 
 struct ProgramAnimator {
     t: f32,
+    sequence_speed: f32,
 }
 
 impl ProgramAnimator {
-    pub fn new() -> Self {
-        Self { t: 0.0 }
+    pub fn new(sequence_speed: f32) -> Self {
+        Self {
+            t: 0.0,
+            sequence_speed,
+        }
     }
 
     pub fn get_blend_mode(
@@ -102,7 +106,7 @@ impl ProgramAnimator {
     }
 
     pub fn tick(&mut self) {
-        self.t += 0.003;
+        self.t += self.sequence_speed;
     }
 
     pub fn needs_program(&self) -> bool {
@@ -140,10 +144,11 @@ impl AppState {
         screen_recorder_length: usize,
         progress_sender: Sender<ScreenRecorderMessage>,
         progress_receiver: Receiver<ScreenRecorderMessage>,
+        sequence_speed: f32,
     ) -> Self {
         Self {
             text_editor: TextEditor::new(),
-            program_animator: ProgramAnimator::new(),
+            program_animator: ProgramAnimator::new(sequence_speed),
             screen_recorder: ScreenRecorder::new(screen_recorder_length, progress_sender),
             screen_recorder_state: ScreenRecorderState::new(progress_receiver),
             time_offset: 0.0,

@@ -2,3 +2,4 @@ video_frames = 2000
 show_fps = false
 scale = 4
 sound = false
+sequence_speed = 0.001

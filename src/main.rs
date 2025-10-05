@@ -50,8 +50,12 @@ fn main() -> anyhow::Result<()> {
     }
     let mut data = [0i16; MAX_SAMPLES_PER_UPDATE as usize];
 
-    let mut app_state =
-        crate::app::AppState::new(screen_recorder_length, progress_sender, progress_receiver);
+    let mut app_state = crate::app::AppState::new(
+        screen_recorder_length,
+        progress_sender,
+        progress_receiver,
+        config.sequence_speed,
+    );
 
     let mut frames: u64 = 0;
 

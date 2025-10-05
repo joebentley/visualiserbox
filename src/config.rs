@@ -10,6 +10,7 @@ pub struct Config {
     pub show_fps: bool,
     pub scale: u32,
     pub sound: bool,
+    pub sequence_speed: f32,
 }
 
 impl Default for Config {
@@ -19,6 +20,7 @@ impl Default for Config {
             show_fps: false,
             scale: 4,
             sound: false,
+            sequence_speed: 0.001,
         }
     }
 }
