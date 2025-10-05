@@ -3,7 +3,6 @@ mod config;
 mod drawing;
 mod program;
 mod recorder;
-mod rect;
 mod ringbuffer;
 mod sound;
 mod texteditor;

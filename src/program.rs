@@ -156,33 +156,6 @@ impl Stack {
             _ => {}
         }
     }
-
-    pub fn get_stack(&self) -> Vec<f32> {
-        if self.stack.len() > 2 {
-            self.stack.clone()
-        } else {
-            let mut ring_buffer_iter = self.ring_buffer.into_iter();
-            if self.stack.len() == 2 {
-                vec![
-                    self.stack[0],
-                    self.stack[1],
-                    ring_buffer_iter.next().unwrap(),
-                ]
-            } else if self.stack.len() == 1 {
-                vec![
-                    self.stack[0],
-                    ring_buffer_iter.next().unwrap(),
-                    ring_buffer_iter.next().unwrap(),
-                ]
-            } else {
-                vec![
-                    ring_buffer_iter.next().unwrap(),
-                    ring_buffer_iter.next().unwrap(),
-                    ring_buffer_iter.next().unwrap(),
-                ]
-            }
-        }
-    }
 }
 
 pub fn execute_string(input: &str, initial_values: [f32; 3]) -> Stack {
