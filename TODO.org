@@ -1,4 +1,6 @@
 
+* TODO Allow modifying timescale
+i.e. multiplying rl.get_time() by constant factor
 * TODO Allow pausing animation
 * TODO Add sequencing between programs
 - Fade?
