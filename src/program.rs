@@ -198,9 +198,40 @@ pub fn execute_string(input: &str, initial_values: [f32; 3]) -> Stack {
     stack
 }
 
+// Adapted from https://github.com/raysan5/raylib/blob/16a0b966c3640d679a9bce5c11164945cadd0783/src/rtextures.c#L4959
+fn color_from_hsv(h: f32, s: f32, v: f32) -> Color {
+    let mut color = Color::new(0, 0, 0, 255);
+
+    // Red channel
+    let mut k = (5.0 + h / 60.0) % 6.0;
+    let t = 4.0 - k;
+    k = k.min(t);
+    k = k.min(1.0);
+    k = k.max(0.0);
+    color.r = (((v - v * s * k) * 255.0) % 256.0) as u8;
+
+    // Green channel
+    let mut k = (3.0 + h / 60.0) % 6.0;
+    let t = 4.0 - k;
+    k = k.min(t);
+    k = k.min(1.0);
+    k = k.max(0.0);
+    color.g = (((v - v * s * k) * 255.0) % 256.0) as u8;
+
+    // Blue channel
+    let mut k = (1.0 + h / 60.0) % 6.0;
+    let t = 4.0 - k;
+    k = k.min(t);
+    k = k.min(1.0);
+    k = k.max(0.0);
+    color.b = (((v - v * s * k) * 255.0) % 256.0) as u8;
+
+    color
+}
+
 pub fn execute_string_to_color(input: &str, initial_values: [f32; 3]) -> Color {
     let mut stack = execute_string(input, initial_values);
-    Color::color_from_hsv(stack.pop(), stack.pop(), stack.pop())
+    color_from_hsv(stack.pop(), stack.pop(), stack.pop())
 }
 
 pub enum BlendMode {
