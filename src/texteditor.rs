@@ -8,6 +8,13 @@ pub struct TextEditor {
     current_line: usize,
 }
 
+impl std::fmt::Display for TextEditor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let lines = self.lines.join("\n");
+        write!(f, "{lines}")
+    }
+}
+
 impl TextEditor {
     pub fn new() -> Self {
         Self {
@@ -15,6 +22,12 @@ impl TextEditor {
             cursor: 0,
             current_line: 0,
         }
+    }
+
+    pub fn load_from_string(&mut self, s: impl AsRef<str>) {
+        self.lines = s.as_ref().lines().map(|s| s.to_owned()).collect();
+        self.cursor = 0;
+        self.current_line = 0;
     }
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, font: &Font, x: i32, y: i32, size: i32) {

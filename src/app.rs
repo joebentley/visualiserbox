@@ -1,3 +1,6 @@
+use std::fs::File;
+use std::io::Read;
+use std::io::Write;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
@@ -166,6 +169,20 @@ impl AppState {
         if let Some(s) = provider.keystring() {
             match s.as_str() {
                 "C-s" => {
+                    if let Some(file) = rfd::FileDialog::new().save_file() {
+                        let mut file = File::create(file)?;
+                        write!(file, "{}", self.text_editor)?;
+                    }
+                }
+                "C-o" => {
+                    if let Some(file) = rfd::FileDialog::new().pick_file() {
+                        let mut file = File::open(file)?;
+                        let mut s = String::new();
+                        file.read_to_string(&mut s)?;
+                        self.text_editor.load_from_string(s);
+                    }
+                }
+                "M-s" => {
                     if !self.screen_recorder_state.is_saving()
                         && let Some(path) = next_available_video_path()?
                     {
