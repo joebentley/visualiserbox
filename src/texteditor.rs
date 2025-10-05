@@ -26,6 +26,10 @@ impl TextEditor {
 
     pub fn load_from_string(&mut self, s: impl AsRef<str>) {
         self.lines = s.as_ref().lines().map(|s| s.to_owned()).collect();
+        if self.lines.len() < 10 {
+            self.lines
+                .append(&mut vec![String::new(); 10 - self.lines.len()]);
+        }
         self.cursor = 0;
         self.current_line = 0;
     }
