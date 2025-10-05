@@ -3,7 +3,7 @@ use std::{fs::File, io::Read, path::Path};
 use log::info;
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
     pub video_frames: u32,
@@ -38,6 +38,9 @@ impl Config {
             "Loaded config from file {}",
             filepath.as_ref().to_str().unwrap()
         );
+
+        info!("{:?}", config);
+
         Ok(config)
     }
 }
