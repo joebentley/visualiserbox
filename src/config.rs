@@ -15,7 +15,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            video_frames: 200,
+            video_frames: 2000,
             show_fps: false,
             scale: 4,
             sound: false,
