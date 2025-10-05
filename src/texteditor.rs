@@ -62,7 +62,11 @@ impl TextEditor {
     }
 
     pub fn prev_line(&mut self) {
-        self.current_line = (self.current_line - 1) % self.lines.len();
+        if self.current_line == 0 {
+            self.current_line = self.lines.len() - 1;
+        } else {
+            self.current_line -= 1;
+        }
         self.clamp_cursor();
     }
 
