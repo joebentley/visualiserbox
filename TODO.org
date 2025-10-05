@@ -5,7 +5,6 @@
 - Each line should be a program
 - Marker going down left side of lines depending on which program is
   currently enabled
-* TODO Add file dialog for saving video
 * TODO Parallelise pixel calculation or use GPU
 Should be easy to parallelise since the state is totally independent
 for each pixel, however this is really what the GPU is for. Using the
@@ -21,6 +20,7 @@ thread.
 * TODO Build .app bundle on macOS
 See https://stackoverflow.com/questions/1596945/building-osx-app-bundle
 * TODO Add undo/redo functionality
+* DONE Add file dialog for saving video
 * DONE Allow saving programs
 * DONE Fix colours in release mode
 * DONE Random program commands

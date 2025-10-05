@@ -129,19 +129,6 @@ pub struct AppState {
     pub time_offset: f64,
 }
 
-fn next_available_video_path() -> std::io::Result<Option<std::path::PathBuf>> {
-    let cwd = std::env::current_dir()?;
-    for i in 0..999 {
-        let video_name = format!("video_{:03}.mp4", i);
-        let mut video_path = cwd.clone();
-        video_path.push(video_name);
-        if !video_path.try_exists()? {
-            return Ok(Some(video_path));
-        }
-    }
-    Ok(None)
-}
-
 impl AppState {
     pub fn new(
         screen_recorder_length: usize,
@@ -184,10 +171,13 @@ impl AppState {
                 }
                 "M-s" => {
                     if !self.screen_recorder_state.is_saving()
-                        && let Some(path) = next_available_video_path()?
+                        && let Some(file) = rfd::FileDialog::new()
+                            .add_filter("mp4", &["mp4"])
+                            .set_file_name("output.mp4")
+                            .save_file()
                     {
                         self.screen_recorder_state.start();
-                        self.screen_recorder.save_as_video(path.to_str().unwrap());
+                        self.screen_recorder.save_as_video(file.to_str().unwrap());
                     }
                 }
                 "C-t" => {
