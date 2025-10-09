@@ -1,6 +1,4 @@
 
-* TODO Allow modifying timescale
-i.e. multiplying rl.get_time() by constant factor
 * TODO Allow pausing animation
 * TODO Add sequencing between programs
 - Fade?
@@ -22,6 +20,8 @@ thread.
 * TODO Build .app bundle on macOS
 See https://stackoverflow.com/questions/1596945/building-osx-app-bundle
 * TODO Add undo/redo functionality
+* DONE Allow modifying timescale
+i.e. multiplying rl.get_time() by constant factor
 * DONE Add file dialog for saving video
 * DONE Allow saving programs
 * DONE Fix colours in release mode
