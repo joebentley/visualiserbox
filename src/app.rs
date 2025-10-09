@@ -17,7 +17,7 @@ pub trait InputProvider {
     fn is_key_down(&self, key: KeyboardKey) -> bool;
     fn is_key_pressed(&self, key: KeyboardKey) -> bool;
     fn is_key_pressed_repeat(&self, key: KeyboardKey) -> bool;
-    fn get_key_pressed(&mut self) -> Option<char>;
+    fn get_key_pressed(&mut self) -> Option<KeyboardKey>;
     fn get_char_pressed(&mut self) -> Option<char>;
 
     fn keystring(&mut self) -> Option<String> {
@@ -37,8 +37,16 @@ pub trait InputProvider {
         // pressed since get_char_pressed will be None if ctrl or alt is
         // held down. Note, this assumes QWERTY layout
         if !s.is_empty()
-            && let Some(mut c) = self.get_key_pressed()
+            && let Some(c) = self.get_key_pressed()
         {
+            match c {
+                KeyboardKey::KEY_UP => return Some(s + "<up>"),
+                KeyboardKey::KEY_DOWN => return Some(s + "<down>"),
+                _ => {}
+            }
+
+            let mut c = c as u32 as u8 as char;
+
             c.make_ascii_lowercase();
             if c.is_ascii() {
                 return Some(s + &c.to_string());
@@ -61,8 +69,8 @@ impl InputProvider for RaylibHandle {
     fn is_key_pressed_repeat(&self, key: KeyboardKey) -> bool {
         self.is_key_pressed_repeat(key)
     }
-    fn get_key_pressed(&mut self) -> Option<char> {
-        self.get_key_pressed_number().map(|c| c as u8 as char)
+    fn get_key_pressed(&mut self) -> Option<KeyboardKey> {
+        self.get_key_pressed()
     }
     fn get_char_pressed(&mut self) -> Option<char> {
         self.get_char_pressed()
