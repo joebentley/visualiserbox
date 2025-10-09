@@ -58,9 +58,11 @@ fn main() -> anyhow::Result<()> {
 
     let mut frames: u64 = 0;
 
+    let mut t = 0.0;
+
     while !rl.window_should_close() {
         let fps = 1.0 / rl.get_frame_time();
-        let t = rl.get_time() - app_state.time_offset;
+        t = t + rl.get_frame_time() as f64 * app_state.time_multiplier - app_state.time_offset;
 
         let mouse_position = rl.get_mouse_position();
         let (mx, my) = (

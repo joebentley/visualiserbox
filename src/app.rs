@@ -135,6 +135,7 @@ pub struct AppState {
     pub screen_recorder: recorder::ScreenRecorder,
     pub screen_recorder_state: recorder::ScreenRecorderState,
     pub time_offset: f64,
+    pub time_multiplier: f64,
 }
 
 impl AppState {
@@ -150,6 +151,7 @@ impl AppState {
             screen_recorder: ScreenRecorder::new(screen_recorder_length, progress_sender),
             screen_recorder_state: ScreenRecorderState::new(progress_receiver),
             time_offset: 0.0,
+            time_multiplier: 1.0,
         }
     }
 
@@ -221,15 +223,19 @@ impl AppState {
                 "C-k" => {
                     self.text_editor.kill_to_end();
                 }
+                "M-<up>" => {
+                    self.time_multiplier += 0.1;
+                }
+                "M-<down>" => {
+                    self.time_multiplier -= 0.1;
+                }
                 &_ => {
                     if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
                         self.text_editor.insert_char(s.chars().nth(0).unwrap());
                     }
                 }
             }
-        }
-
-        if provider.is_key_pressed(KeyboardKey::KEY_DOWN) {
+        } else if provider.is_key_pressed(KeyboardKey::KEY_DOWN) {
             self.text_editor.next_line();
         } else if provider.is_key_pressed(KeyboardKey::KEY_UP) {
             self.text_editor.prev_line();
