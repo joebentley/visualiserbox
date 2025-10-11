@@ -58,11 +58,8 @@ fn main() -> anyhow::Result<()> {
 
     let mut frames: u64 = 0;
 
-    let mut t = 0.0;
-
     while !rl.window_should_close() {
         let fps = 1.0 / rl.get_frame_time();
-        t = t + rl.get_frame_time() as f64 * app_state.time_multiplier - app_state.time_offset;
 
         let mouse_position = rl.get_mouse_position();
         let (mx, my) = (
@@ -85,7 +82,7 @@ fn main() -> anyhow::Result<()> {
                 for x in 0..scaled_width {
                     let colour = program::execute_blended_to_color(
                         app_state.get_blend_mode(),
-                        [x as f32, y as f32, t as f32],
+                        [x as f32, y as f32, app_state.t],
                     );
 
                     d.draw_rectangle(x * scale, y * scale, scale, scale, colour);

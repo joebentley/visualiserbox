@@ -81,12 +81,12 @@ impl InputProvider for RaylibHandle {
 }
 
 pub trait TimeProvider {
-    fn get_time(&self) -> f64;
+    fn get_frame_time(&self) -> f32;
 }
 
 impl TimeProvider for RaylibHandle {
-    fn get_time(&self) -> f64 {
-        self.get_time()
+    fn get_frame_time(&self) -> f32 {
+        self.get_frame_time()
     }
 }
 
@@ -151,8 +151,8 @@ pub struct AppState {
     program_animator: ProgramAnimator,
     pub screen_recorder: recorder::ScreenRecorder,
     pub screen_recorder_state: recorder::ScreenRecorderState,
-    pub time_offset: f64,
-    pub time_multiplier: f64,
+    pub t: f32,
+    time_multiplier: f32,
 }
 
 impl AppState {
@@ -167,7 +167,7 @@ impl AppState {
             program_animator: ProgramAnimator::new(sequence_speed),
             screen_recorder: ScreenRecorder::new(screen_recorder_length, progress_sender),
             screen_recorder_state: ScreenRecorderState::new(progress_receiver),
-            time_offset: 0.0,
+            t: 0.0,
             time_multiplier: 1.0,
         }
     }
@@ -208,7 +208,7 @@ impl AppState {
                     }
                 }
                 "C-t" => {
-                    self.time_offset = provider.get_time();
+                    self.t = 0.0;
                 }
                 "C-r" => {
                     self.text_editor.randomise_line();
@@ -280,6 +280,8 @@ impl AppState {
                 self.program_animator.reset();
             }
         }
+
+        self.t += provider.get_frame_time() * self.time_multiplier;
 
         Ok(())
     }
