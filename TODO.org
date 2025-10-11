@@ -1,5 +1,4 @@
 
-* TODO Allow pausing animation
 * TODO Add sequencing between programs
 - Fade?
 - Each line should be a program
@@ -20,6 +19,7 @@ thread.
 * TODO Build .app bundle on macOS
 See https://stackoverflow.com/questions/1596945/building-osx-app-bundle
 * TODO Add undo/redo functionality
+* DONE Allow pausing animation
 * DONE Allow modifying timescale
 i.e. multiplying rl.get_time() by constant factor
 * DONE Add file dialog for saving video

@@ -4,6 +4,8 @@ use std::io::Write;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
+use crate::drawing::draw_pause_button;
+use crate::drawing::draw_play_button;
 use crate::program;
 use crate::recorder;
 use crate::recorder::ScreenRecorder;
@@ -42,6 +44,7 @@ pub trait InputProvider {
             match c {
                 KeyboardKey::KEY_UP => return Some(s + "<up>"),
                 KeyboardKey::KEY_DOWN => return Some(s + "<down>"),
+                KeyboardKey::KEY_SPACE => return Some(s + "SPC"),
                 _ => {}
             }
 
@@ -90,6 +93,7 @@ impl TimeProvider for RaylibHandle {
 struct ProgramAnimator {
     t: f32,
     sequence_speed: f32,
+    playing: bool,
 }
 
 impl ProgramAnimator {
@@ -97,6 +101,7 @@ impl ProgramAnimator {
         Self {
             t: 0.0,
             sequence_speed,
+            playing: false,
         }
     }
 
@@ -116,8 +121,20 @@ impl ProgramAnimator {
         }
     }
 
+    pub fn play(&mut self) {
+        self.reset();
+        self.playing = true;
+    }
+
+    pub fn stop(&mut self) {
+        self.reset();
+        self.playing = false;
+    }
+
     pub fn tick(&mut self) {
-        self.t += self.sequence_speed;
+        if self.playing {
+            self.t += self.sequence_speed;
+        }
     }
 
     pub fn needs_program(&self) -> bool {
@@ -229,6 +246,13 @@ impl AppState {
                 "M-<down>" => {
                     self.time_multiplier -= 0.1;
                 }
+                "C-SPC" => {
+                    if self.program_animator.playing {
+                        self.program_animator.stop();
+                    } else {
+                        self.program_animator.play();
+                    }
+                }
                 &_ => {
                     if program::ALLOWED.contains(&s.chars().nth(0).unwrap_or('§')) {
                         self.text_editor.insert_char(s.chars().nth(0).unwrap());
@@ -273,6 +297,14 @@ impl AppState {
         size: i32,
     ) {
         self.text_editor.draw(d, font, x, y, size);
+    }
+
+    pub fn draw_play_pause_button(&self, d: &mut RaylibDrawHandle, x: i32, y: i32, width: i32) {
+        if self.program_animator.playing {
+            draw_play_button(d, x as f32, y as f32, width as f32);
+        } else {
+            draw_pause_button(d, x, y, width, width);
+        }
     }
 
     pub fn get_blend_mode(&self) -> program::BlendMode {

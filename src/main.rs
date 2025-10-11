@@ -97,6 +97,8 @@ fn main() -> anyhow::Result<()> {
                 draw_text(&mut d, &font, fps.round().to_string(), width - 80, 400, 40);
             }
 
+            app_state.draw_play_pause_button(&mut d, width - 50, height - 50, 30);
+
             if app_state.screen_recorder_state.is_saving() {
                 let text = app_state
                     .screen_recorder_state
