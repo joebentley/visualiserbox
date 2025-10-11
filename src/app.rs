@@ -101,7 +101,7 @@ impl ProgramAnimator {
         Self {
             t: 0.0,
             sequence_speed,
-            playing: false,
+            playing: true,
         }
     }
 
