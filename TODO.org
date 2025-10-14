@@ -1,4 +1,6 @@
 
+* TODO Implement wrapping for the animation marker
+* TODO Implement skipping over empty lines for the animation marker
 * TODO Add sequencing between programs
 - Fade?
 - Each line should be a program
