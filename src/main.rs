@@ -55,6 +55,7 @@ fn main() -> anyhow::Result<()> {
         progress_receiver,
         config.sequence_speed,
         config.pause_time,
+        config.primary_colour,
     );
 
     let mut frames: u64 = 0;
@@ -92,7 +93,15 @@ fn main() -> anyhow::Result<()> {
 
             app_state.draw_input_text(&mut d, &font, 30, 20, 40);
             if config.show_fps {
-                draw_text(&mut d, &font, fps.round().to_string(), width - 80, 400, 40);
+                draw_text(
+                    &mut d,
+                    &font,
+                    fps.round().to_string(),
+                    width - 80,
+                    400,
+                    40,
+                    config.primary_colour.into(),
+                );
             }
 
             app_state.draw_play_pause_button(&mut d, width - 50, height - 50, 30);
@@ -101,7 +110,15 @@ fn main() -> anyhow::Result<()> {
                 let text = app_state
                     .screen_recorder_state
                     .progress_string(screen_recorder_length);
-                draw_text(&mut d, &font, text, 10, 400, 30);
+                draw_text(
+                    &mut d,
+                    &font,
+                    text,
+                    10,
+                    400,
+                    30,
+                    config.primary_colour.into(),
+                );
             }
         }
 

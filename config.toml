@@ -4,3 +4,5 @@ scale = 4
 sound = false
 sequence_speed = 0.001
 pause_time = 0.5
+# Navajo white
+primary_colour = {r = 255, g = 222, b = 173}

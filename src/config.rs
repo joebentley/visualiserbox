@@ -1,9 +1,52 @@
+use raylib::core::color as rl_color;
 use std::{fs::File, io::Read, path::Path};
 
 use log::info;
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+fn two_five_five() -> u8 {
+    255
+}
+
+#[derive(Copy, Clone, Debug, Deserialize)]
+#[serde(default)]
+pub struct Colour {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    #[serde(default = "two_five_five")]
+    pub a: u8,
+}
+
+impl From<rl_color::Color> for Colour {
+    fn from(value: rl_color::Color) -> Colour {
+        Colour {
+            r: value.r,
+            g: value.g,
+            b: value.b,
+            a: value.a,
+        }
+    }
+}
+
+impl From<Colour> for rl_color::Color {
+    fn from(value: Colour) -> rl_color::Color {
+        rl_color::Color {
+            r: value.r,
+            g: value.g,
+            b: value.b,
+            a: value.a,
+        }
+    }
+}
+
+impl Default for Colour {
+    fn default() -> Self {
+        rl_color::Color::NAVAJOWHITE.into()
+    }
+}
+
+#[derive(Copy, Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
     pub video_frames: u32,
@@ -12,6 +55,7 @@ pub struct Config {
     pub sound: bool,
     pub sequence_speed: f32,
     pub pause_time: f32,
+    pub primary_colour: Colour,
 }
 
 impl Default for Config {
@@ -23,6 +67,7 @@ impl Default for Config {
             sound: false,
             sequence_speed: 0.001,
             pause_time: 0.5,
+            primary_colour: Default::default(),
         }
     }
 }

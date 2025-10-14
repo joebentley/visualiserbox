@@ -168,6 +168,7 @@ pub struct AppState {
     pub screen_recorder_state: recorder::ScreenRecorderState,
     pub t: f32,
     time_multiplier: f32,
+    primary_colour: Color,
 }
 
 impl AppState {
@@ -177,6 +178,7 @@ impl AppState {
         progress_receiver: Receiver<ScreenRecorderMessage>,
         sequence_speed: f32,
         pause_time: f32,
+        primary_colour: impl Into<Color>,
     ) -> Self {
         Self {
             text_editor: TextEditor::new(),
@@ -185,6 +187,7 @@ impl AppState {
             screen_recorder_state: ScreenRecorderState::new(progress_receiver),
             t: 0.0,
             time_multiplier: 1.0,
+            primary_colour: primary_colour.into(),
         }
     }
 
@@ -323,17 +326,18 @@ impl AppState {
                 20,
                 y + (marker_y + line_height / 2.0) as i32,
                 4.5,
-                Color::NAVAJOWHITE.alpha(0.9),
+                self.primary_colour.alpha(0.9),
             );
         }
-        self.text_editor.draw(d, font, x, y, size);
+        self.text_editor
+            .draw(d, font, x, y, size, self.primary_colour);
     }
 
     pub fn draw_play_pause_button(&self, d: &mut RaylibDrawHandle, x: i32, y: i32, width: i32) {
         if self.program_animator.playing {
-            draw_play_button(d, x as f32, y as f32, width as f32);
+            draw_play_button(d, x as f32, y as f32, width as f32, self.primary_colour);
         } else {
-            draw_pause_button(d, x, y, width, width);
+            draw_pause_button(d, x, y, width, width, self.primary_colour);
         }
     }
 

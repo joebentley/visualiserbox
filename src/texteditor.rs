@@ -38,13 +38,29 @@ impl TextEditor {
         self.current_line = 0;
     }
 
-    pub fn draw(&self, d: &mut RaylibDrawHandle, font: &Font, x: i32, y: i32, size: i32) {
+    pub fn draw(
+        &self,
+        d: &mut RaylibDrawHandle,
+        font: &Font,
+        x: i32,
+        y: i32,
+        size: i32,
+        colour: Color,
+    ) {
         let line_height = line_height(font, size) as i32;
 
-        self.draw_cursor(d, font, x, y, size);
+        self.draw_cursor(d, font, x, y, size, colour);
 
         for (i, line) in self.lines.iter().enumerate() {
-            draw_text(d, font, line.as_str(), x, y + i as i32 * line_height, size);
+            draw_text(
+                d,
+                font,
+                line.as_str(),
+                x,
+                y + i as i32 * line_height,
+                size,
+                colour,
+            );
         }
     }
 
@@ -160,7 +176,15 @@ impl TextEditor {
         }
     }
 
-    fn draw_cursor(&self, d: &mut RaylibDrawHandle, font: &Font, x: i32, y: i32, size: i32) {
+    fn draw_cursor(
+        &self,
+        d: &mut RaylibDrawHandle,
+        font: &Font,
+        x: i32,
+        y: i32,
+        size: i32,
+        colour: Color,
+    ) {
         let em = font.measure_text("M", size as f32, 1.0);
         let line_height = em.y as i32;
         let cursor_width = em.x as i32;
@@ -177,8 +201,8 @@ impl TextEditor {
             y + self.current_line as i32 * line_height,
             cursor_width,
             line_height,
-            Color::NAVAJOWHITE,
-            Color::NAVAJOWHITE.alpha(0.0),
+            colour,
+            colour.alpha(0.0),
         );
     }
 }
