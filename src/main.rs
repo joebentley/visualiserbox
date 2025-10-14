@@ -54,6 +54,7 @@ fn main() -> anyhow::Result<()> {
         progress_sender,
         progress_receiver,
         config.sequence_speed,
+        config.pause_time,
     );
 
     let mut frames: u64 = 0;

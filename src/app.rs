@@ -94,14 +94,18 @@ impl TimeProvider for RaylibHandle {
 struct ProgramAnimator {
     t: f32,
     sequence_speed: f32,
+    pause_time: f32,
     playing: bool,
 }
 
 impl ProgramAnimator {
-    pub fn new(sequence_speed: f32) -> Self {
+    pub fn new(sequence_speed: f32, pause_time: f32) -> Self {
+        assert!(pause_time >= 0.0);
+        assert!(pause_time < 1.0);
         Self {
             t: 0.0,
             sequence_speed,
+            pause_time,
             playing: true,
         }
     }
@@ -111,24 +115,24 @@ impl ProgramAnimator {
         current_program: impl Into<String>,
         next_program: impl Into<String>,
     ) -> program::BlendMode {
-        if self.t < 0.7 {
+        if self.t < self.pause_time {
             program::BlendMode::One(current_program.into())
         } else {
             program::BlendMode::Two(
                 current_program.into(),
                 next_program.into(),
-                utils::map(0.7, 1.0, 0.0, 1.0, self.t),
+                utils::map(self.pause_time, 1.0, 0.0, 1.0, self.t),
             )
         }
     }
 
     pub fn calculate_marker_y_position(&self, current_line: usize, line_height: f32) -> f32 {
         utils::map(
-            0.7,
+            self.pause_time,
             1.0,
             current_line as f32 * line_height,
             (current_line as f32 + 1.0) * line_height,
-            self.t.clamp(0.7, 1.0),
+            self.t.clamp(self.pause_time, 1.0),
         )
     }
 
@@ -172,10 +176,11 @@ impl AppState {
         progress_sender: Sender<ScreenRecorderMessage>,
         progress_receiver: Receiver<ScreenRecorderMessage>,
         sequence_speed: f32,
+        pause_time: f32,
     ) -> Self {
         Self {
             text_editor: TextEditor::new(),
-            program_animator: ProgramAnimator::new(sequence_speed),
+            program_animator: ProgramAnimator::new(sequence_speed, pause_time),
             screen_recorder: ScreenRecorder::new(screen_recorder_length, progress_sender),
             screen_recorder_state: ScreenRecorderState::new(progress_receiver),
             t: 0.0,

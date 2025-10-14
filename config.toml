@@ -3,3 +3,4 @@ show_fps = false
 scale = 4
 sound = false
 sequence_speed = 0.001
+pause_time = 0.5

@@ -11,6 +11,7 @@ pub struct Config {
     pub scale: u32,
     pub sound: bool,
     pub sequence_speed: f32,
+    pub pause_time: f32,
 }
 
 impl Default for Config {
@@ -21,6 +22,7 @@ impl Default for Config {
             scale: 4,
             sound: false,
             sequence_speed: 0.001,
+            pause_time: 0.5,
         }
     }
 }
