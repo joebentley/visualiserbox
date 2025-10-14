@@ -11,6 +11,7 @@ use crate::recorder;
 use crate::recorder::ScreenRecorder;
 use crate::recorder::ScreenRecorderMessage;
 use crate::recorder::ScreenRecorderState;
+use crate::texteditor;
 use crate::texteditor::TextEditor;
 use crate::utils;
 use raylib::prelude::*;
@@ -119,6 +120,16 @@ impl ProgramAnimator {
                 utils::map(0.7, 1.0, 0.0, 1.0, self.t),
             )
         }
+    }
+
+    pub fn calculate_marker_y_position(&self, current_line: usize, line_height: f32) -> f32 {
+        utils::map(
+            0.7,
+            1.0,
+            current_line as f32 * line_height,
+            (current_line as f32 + 1.0) * line_height,
+            self.t.clamp(0.7, 1.0),
+        )
     }
 
     pub fn play(&mut self) {
@@ -287,7 +298,7 @@ impl AppState {
     }
 
     pub fn current_input_line(&self) -> &str {
-        self.text_editor.current_line()
+        self.text_editor.get_current_line_str()
     }
 
     pub fn draw_input_text(
@@ -298,6 +309,18 @@ impl AppState {
         y: i32,
         size: i32,
     ) {
+        if self.program_animator.playing {
+            let line_height = texteditor::line_height(font, size);
+            let marker_y = self
+                .program_animator
+                .calculate_marker_y_position(self.text_editor.current_line(), line_height);
+            d.draw_circle(
+                20,
+                y + (marker_y + line_height / 2.0) as i32,
+                4.5,
+                Color::NAVAJOWHITE.alpha(0.9),
+            );
+        }
         self.text_editor.draw(d, font, x, y, size);
     }
 
@@ -310,7 +333,7 @@ impl AppState {
     }
 
     pub fn get_blend_mode(&self) -> program::BlendMode {
-        let current = self.text_editor.current_line();
+        let current = self.text_editor.get_current_line_str();
         if self.text_editor.num_non_empty_lines() <= 1 {
             return program::BlendMode::One(current.to_owned());
         }

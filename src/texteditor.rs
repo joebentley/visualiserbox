@@ -2,6 +2,10 @@ use crate::{drawing::draw_text, program};
 use rand::seq::IndexedRandom;
 use raylib::prelude::*;
 
+pub fn line_height(font: &Font, size: i32) -> f32 {
+    font.measure_text("M", size as f32, 1.0).y
+}
+
 pub struct TextEditor {
     lines: Vec<String>,
     cursor: usize,
@@ -35,7 +39,7 @@ impl TextEditor {
     }
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, font: &Font, x: i32, y: i32, size: i32) {
-        let line_height = font.measure_text("M", size as f32, 1.0).y as i32;
+        let line_height = line_height(font, size) as i32;
 
         self.draw_cursor(d, font, x, y, size);
 
@@ -75,7 +79,7 @@ impl TextEditor {
     }
 
     pub fn end_of_line(&mut self) {
-        self.cursor = self.current_line().len();
+        self.cursor = self.get_current_line_str().len();
     }
 
     pub fn insert_char(&mut self, c: char) {
@@ -98,7 +102,11 @@ impl TextEditor {
         self.lines[self.current_line].truncate(self.cursor);
     }
 
-    pub fn current_line(&self) -> &str {
+    pub fn current_line(&self) -> usize {
+        self.current_line
+    }
+
+    pub fn get_current_line_str(&self) -> &str {
         self.lines[self.current_line].as_str()
     }
 
@@ -110,7 +118,7 @@ impl TextEditor {
     }
 
     pub fn rotate_line_left(&mut self) {
-        let mut s: Vec<char> = self.current_line().chars().collect();
+        let mut s: Vec<char> = self.get_current_line_str().chars().collect();
         if s.is_empty() {
             return;
         }
@@ -119,7 +127,7 @@ impl TextEditor {
     }
 
     pub fn rotate_line_right(&mut self) {
-        let mut s: Vec<char> = self.current_line().chars().collect();
+        let mut s: Vec<char> = self.get_current_line_str().chars().collect();
         if s.is_empty() {
             return;
         }
@@ -141,7 +149,7 @@ impl TextEditor {
 
     pub fn goto_next_nonempty(&mut self) {
         self.next_line();
-        while self.current_line().is_empty() {
+        while self.get_current_line_str().is_empty() {
             self.next_line();
         }
     }
@@ -158,7 +166,11 @@ impl TextEditor {
         let cursor_width = em.x as i32;
 
         let x_offset = font
-            .measure_text(&self.current_line()[..self.cursor], size as f32, 1.0)
+            .measure_text(
+                &self.get_current_line_str()[..self.cursor],
+                size as f32,
+                1.0,
+            )
             .x as i32;
         d.draw_rectangle_gradient_h(
             x + x_offset,

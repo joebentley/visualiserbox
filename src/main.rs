@@ -89,7 +89,7 @@ fn main() -> anyhow::Result<()> {
                 }
             }
 
-            app_state.draw_input_text(&mut d, &font, 20, 20, 40);
+            app_state.draw_input_text(&mut d, &font, 30, 20, 40);
             if config.show_fps {
                 draw_text(&mut d, &font, fps.round().to_string(), width - 80, 400, 40);
             }
