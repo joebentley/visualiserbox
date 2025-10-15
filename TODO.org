@@ -21,6 +21,8 @@ thread.
 * TODO Build .app bundle on macOS
 See https://stackoverflow.com/questions/1596945/building-osx-app-bundle
 * TODO Add undo/redo functionality
+* DONE Change program animation length to be on cycle length in seconds
+This will be easier for the user to understand when configuring
 * DONE Allow pausing animation
 * DONE Allow modifying timescale
 i.e. multiplying rl.get_time() by constant factor

@@ -53,7 +53,7 @@ pub struct Config {
     pub show_fps: bool,
     pub scale: u32,
     pub sound: bool,
-    pub sequence_speed: f32,
+    pub cycle_time: f32,
     pub pause_time: f32,
     pub primary_colour: Colour,
 }
@@ -65,7 +65,7 @@ impl Default for Config {
             show_fps: false,
             scale: 4,
             sound: false,
-            sequence_speed: 0.001,
+            cycle_time: 20.0,
             pause_time: 0.5,
             primary_colour: Default::default(),
         }

@@ -93,18 +93,18 @@ impl TimeProvider for RaylibHandle {
 
 struct ProgramAnimator {
     t: f32,
-    sequence_speed: f32,
+    cycle_time: f32,
     pause_time: f32,
     playing: bool,
 }
 
 impl ProgramAnimator {
-    pub fn new(sequence_speed: f32, pause_time: f32) -> Self {
+    pub fn new(cycle_time: f32, pause_time: f32) -> Self {
         assert!(pause_time >= 0.0);
         assert!(pause_time < 1.0);
         Self {
             t: 0.0,
-            sequence_speed,
+            cycle_time,
             pause_time,
             playing: true,
         }
@@ -146,9 +146,9 @@ impl ProgramAnimator {
         self.playing = false;
     }
 
-    pub fn tick(&mut self) {
+    pub fn tick(&mut self, frame_time: f32) {
         if self.playing {
-            self.t += self.sequence_speed;
+            self.t += frame_time / self.cycle_time;
         }
     }
 
@@ -176,13 +176,13 @@ impl AppState {
         screen_recorder_length: usize,
         progress_sender: Sender<ScreenRecorderMessage>,
         progress_receiver: Receiver<ScreenRecorderMessage>,
-        sequence_speed: f32,
+        cycle_time: f32,
         pause_time: f32,
         primary_colour: impl Into<Color>,
     ) -> Self {
         Self {
             text_editor: TextEditor::new(),
-            program_animator: ProgramAnimator::new(sequence_speed, pause_time),
+            program_animator: ProgramAnimator::new(cycle_time, pause_time),
             screen_recorder: ScreenRecorder::new(screen_recorder_length, progress_sender),
             screen_recorder_state: ScreenRecorderState::new(progress_receiver),
             t: 0.0,
@@ -293,7 +293,7 @@ impl AppState {
         }
 
         if self.text_editor.num_non_empty_lines() >= 2 {
-            self.program_animator.tick();
+            self.program_animator.tick(provider.get_frame_time());
             if self.program_animator.needs_program() {
                 self.text_editor.goto_next_nonempty();
                 self.program_animator.reset();

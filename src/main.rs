@@ -56,7 +56,7 @@ fn main() -> anyhow::Result<()> {
         screen_recorder_length,
         progress_sender,
         progress_receiver,
-        config.sequence_speed,
+        config.cycle_time,
         config.pause_time,
         config.primary_colour,
     );
