@@ -224,7 +224,7 @@ impl AppState {
 
         if self.text_editor.num_non_empty_lines() >= 2 {
             self.program_animator.tick(provider.get_frame_time());
-            if self.program_animator.needs_program() {
+            if self.program_animator.is_animation_finished() {
                 self.text_editor.goto_next_nonempty();
                 self.program_animator.reset();
             }
@@ -273,13 +273,10 @@ impl AppState {
         }
     }
 
-    pub fn get_blend_mode(&self) -> program::BlendMode {
-        let current = self.text_editor.get_current_line_str();
-        if self.text_editor.num_non_empty_lines() <= 1 {
-            return program::BlendMode::One(current.to_owned());
-        }
-
-        let next = self.text_editor.get_next_nonempty();
-        self.program_animator.get_blend_mode(current, next)
+    pub fn execute(&self, x: i32, y: i32) -> Color {
+        let current = self.text_editor.get_current_line_str().to_owned();
+        let next = self.text_editor.get_next_nonempty().to_owned();
+        self.program_animator
+            .execute(current, next, [x as f32, y as f32, self.t])
     }
 }

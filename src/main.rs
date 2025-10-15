@@ -86,11 +86,7 @@ fn main() -> anyhow::Result<()> {
 
             for y in 0..scaled_height {
                 for x in 0..scaled_width {
-                    let colour = program::execute_blended_to_color(
-                        app_state.get_blend_mode(),
-                        [x as f32, y as f32, app_state.t],
-                    );
-
+                    let colour = app_state.execute(x, y);
                     d.draw_rectangle(x * scale, y * scale, scale, scale, colour);
                 }
             }
