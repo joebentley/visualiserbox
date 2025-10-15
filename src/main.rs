@@ -26,8 +26,11 @@ fn main() -> anyhow::Result<()> {
 
     let (mut rl, thread) = raylib::init()
         .size(640, 480)
+        .vsync()
         .title("Visualiser Box")
         .build();
+
+    rl.set_target_fps(60);
 
     let width = rl.get_screen_width();
     let height = rl.get_screen_height();
