@@ -126,13 +126,18 @@ impl ProgramAnimator {
         }
     }
 
-    pub fn calculate_marker_y_position(&self, current_line: usize, line_height: f32) -> f32 {
+    pub fn calculate_marker_y_position(
+        &self,
+        from_line: usize,
+        to_line: usize,
+        line_height: f32,
+    ) -> f32 {
         utils::map(
             self.pause_fraction,
             1.0,
-            current_line as f32 * line_height,
-            (current_line as f32 + 1.0) * line_height,
-            self.t.clamp(self.pause_time, 1.0),
+            from_line as f32 * line_height,
+            to_line as f32 * line_height,
+            self.t.clamp(self.pause_fraction, 1.0),
         )
     }
 
@@ -319,9 +324,11 @@ impl AppState {
     ) {
         if self.program_animator.playing {
             let line_height = texteditor::line_height(font, size);
-            let marker_y = self
-                .program_animator
-                .calculate_marker_y_position(self.text_editor.current_line(), line_height);
+            let marker_y = self.program_animator.calculate_marker_y_position(
+                self.text_editor.current_line(),
+                self.text_editor.get_next_nonempty_index().unwrap_or(0),
+                line_height,
+            );
             d.draw_circle(
                 20,
                 y + (marker_y + line_height / 2.0) as i32,

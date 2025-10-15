@@ -155,12 +155,22 @@ impl TextEditor {
         self.lines.iter().filter(|s| !s.is_empty()).count()
     }
 
-    pub fn get_next_nonempty(&self) -> &str {
+    pub fn get_next_nonempty_index(&self) -> Option<usize> {
+        if self.num_non_empty_lines() == 0 {
+            return None;
+        }
         let mut i = (self.current_line + 1) % self.lines.len();
         while self.lines[i].is_empty() {
             i = (i + 1) % self.lines.len();
         }
-        &self.lines[i]
+        Some(i)
+    }
+
+    pub fn get_next_nonempty(&self) -> &str {
+        if let Some(i) = self.get_next_nonempty_index() {
+            return &self.lines[i];
+        }
+        ""
     }
 
     pub fn goto_next_nonempty(&mut self) {
