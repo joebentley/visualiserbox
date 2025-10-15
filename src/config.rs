@@ -54,7 +54,7 @@ pub struct Config {
     pub scale: u32,
     pub sound: bool,
     pub cycle_time: f32,
-    pub pause_time: f32,
+    pub pause_fraction: f32,
     pub primary_colour: Colour,
 }
 
@@ -66,7 +66,7 @@ impl Default for Config {
             scale: 4,
             sound: false,
             cycle_time: 20.0,
-            pause_time: 0.5,
+            pause_fraction: 0.5,
             primary_colour: Default::default(),
         }
     }

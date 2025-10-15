@@ -94,18 +94,18 @@ impl TimeProvider for RaylibHandle {
 struct ProgramAnimator {
     t: f32,
     cycle_time: f32,
-    pause_time: f32,
+    pause_fraction: f32,
     playing: bool,
 }
 
 impl ProgramAnimator {
-    pub fn new(cycle_time: f32, pause_time: f32) -> Self {
-        assert!(pause_time >= 0.0);
-        assert!(pause_time < 1.0);
+    pub fn new(cycle_time: f32, pause_fraction: f32) -> Self {
+        assert!(pause_fraction >= 0.0);
+        assert!(pause_fraction < 1.0);
         Self {
             t: 0.0,
             cycle_time,
-            pause_time,
+            pause_fraction,
             playing: true,
         }
     }
@@ -115,20 +115,20 @@ impl ProgramAnimator {
         current_program: impl Into<String>,
         next_program: impl Into<String>,
     ) -> program::BlendMode {
-        if self.t < self.pause_time {
+        if self.t < self.pause_fraction {
             program::BlendMode::One(current_program.into())
         } else {
             program::BlendMode::Two(
                 current_program.into(),
                 next_program.into(),
-                utils::map(self.pause_time, 1.0, 0.0, 1.0, self.t),
+                utils::map(self.pause_fraction, 1.0, 0.0, 1.0, self.t),
             )
         }
     }
 
     pub fn calculate_marker_y_position(&self, current_line: usize, line_height: f32) -> f32 {
         utils::map(
-            self.pause_time,
+            self.pause_fraction,
             1.0,
             current_line as f32 * line_height,
             (current_line as f32 + 1.0) * line_height,
@@ -177,12 +177,12 @@ impl AppState {
         progress_sender: Sender<ScreenRecorderMessage>,
         progress_receiver: Receiver<ScreenRecorderMessage>,
         cycle_time: f32,
-        pause_time: f32,
+        pause_fraction: f32,
         primary_colour: impl Into<Color>,
     ) -> Self {
         Self {
             text_editor: TextEditor::new(),
-            program_animator: ProgramAnimator::new(cycle_time, pause_time),
+            program_animator: ProgramAnimator::new(cycle_time, pause_fraction),
             screen_recorder: ScreenRecorder::new(screen_recorder_length, progress_sender),
             screen_recorder_state: ScreenRecorderState::new(progress_receiver),
             t: 0.0,

@@ -3,6 +3,6 @@ show_fps = false
 scale = 4
 sound = false
 cycle_time = 20
-pause_time = 0.5
+pause_fraction = 0.5
 # Navajo white
 primary_colour = {r = 255, g = 222, b = 173}

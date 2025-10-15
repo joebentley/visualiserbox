@@ -57,7 +57,7 @@ fn main() -> anyhow::Result<()> {
         progress_sender,
         progress_receiver,
         config.cycle_time,
-        config.pause_time,
+        config.pause_fraction,
         config.primary_colour,
     );
 
