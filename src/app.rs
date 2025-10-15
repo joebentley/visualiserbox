@@ -4,6 +4,7 @@ use std::io::Write;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
+use crate::animation::ProgramAnimator;
 use crate::drawing::draw_pause_button;
 use crate::drawing::draw_play_button;
 use crate::program;
@@ -13,7 +14,6 @@ use crate::recorder::ScreenRecorderMessage;
 use crate::recorder::ScreenRecorderState;
 use crate::texteditor;
 use crate::texteditor::TextEditor;
-use crate::utils;
 use raylib::prelude::*;
 
 pub trait InputProvider {
@@ -88,81 +88,6 @@ pub trait TimeProvider {
 impl TimeProvider for RaylibHandle {
     fn get_frame_time(&self) -> f32 {
         self.get_frame_time()
-    }
-}
-
-struct ProgramAnimator {
-    t: f32,
-    cycle_time: f32,
-    pause_fraction: f32,
-    playing: bool,
-}
-
-impl ProgramAnimator {
-    pub fn new(cycle_time: f32, pause_fraction: f32) -> Self {
-        assert!(pause_fraction >= 0.0);
-        assert!(pause_fraction < 1.0);
-        Self {
-            t: 0.0,
-            cycle_time,
-            pause_fraction,
-            playing: true,
-        }
-    }
-
-    pub fn get_blend_mode(
-        &self,
-        current_program: impl Into<String>,
-        next_program: impl Into<String>,
-    ) -> program::BlendMode {
-        if self.t < self.pause_fraction {
-            program::BlendMode::One(current_program.into())
-        } else {
-            program::BlendMode::Two(
-                current_program.into(),
-                next_program.into(),
-                utils::map(self.pause_fraction, 1.0, 0.0, 1.0, self.t),
-            )
-        }
-    }
-
-    pub fn calculate_marker_y_position(
-        &self,
-        from_line: usize,
-        to_line: usize,
-        line_height: f32,
-    ) -> f32 {
-        utils::map(
-            self.pause_fraction,
-            1.0,
-            from_line as f32 * line_height,
-            to_line as f32 * line_height,
-            self.t.clamp(self.pause_fraction, 1.0),
-        )
-    }
-
-    pub fn play(&mut self) {
-        self.reset();
-        self.playing = true;
-    }
-
-    pub fn stop(&mut self) {
-        self.reset();
-        self.playing = false;
-    }
-
-    pub fn tick(&mut self, frame_time: f32) {
-        if self.playing {
-            self.t += frame_time / self.cycle_time;
-        }
-    }
-
-    pub fn needs_program(&self) -> bool {
-        self.t >= 1.0
-    }
-
-    pub fn reset(&mut self) {
-        self.t = 0.0;
     }
 }
 
@@ -271,7 +196,7 @@ impl AppState {
                     self.time_multiplier -= 0.1;
                 }
                 "C-SPC" => {
-                    if self.program_animator.playing {
+                    if self.program_animator.playing() {
                         self.program_animator.stop();
                     } else {
                         self.program_animator.play();
@@ -322,7 +247,7 @@ impl AppState {
         y: i32,
         size: i32,
     ) {
-        if self.program_animator.playing {
+        if self.program_animator.playing() {
             let line_height = texteditor::line_height(font, size);
             let marker_y = self.program_animator.calculate_marker_y_position(
                 self.text_editor.current_line(),
@@ -341,7 +266,7 @@ impl AppState {
     }
 
     pub fn draw_play_pause_button(&self, d: &mut RaylibDrawHandle, x: i32, y: i32, width: i32) {
-        if self.program_animator.playing {
+        if self.program_animator.playing() {
             draw_play_button(d, x as f32, y as f32, width as f32, self.primary_colour);
         } else {
             draw_pause_button(d, x, y, width, width, self.primary_colour);
