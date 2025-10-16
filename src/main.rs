@@ -60,6 +60,8 @@ fn main() -> anyhow::Result<()> {
         config.cycle_time,
         config.pause_fraction,
         config.primary_colour,
+        scaled_width,
+        scaled_height,
     );
 
     let mut frames: u64 = 0;

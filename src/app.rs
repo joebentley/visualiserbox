@@ -109,10 +109,12 @@ impl AppState {
         cycle_time: f32,
         pause_fraction: f32,
         primary_colour: impl Into<Color>,
+        width: i32,
+        height: i32,
     ) -> Self {
         Self {
             text_editor: TextEditor::new(),
-            program_animator: ProgramAnimator::new(cycle_time, pause_fraction),
+            program_animator: ProgramAnimator::new(cycle_time, pause_fraction, width, height),
             screen_recorder: ScreenRecorder::new(screen_recorder_length, progress_sender),
             screen_recorder_state: ScreenRecorderState::new(progress_receiver),
             t: 0.0,
@@ -276,7 +278,6 @@ impl AppState {
     pub fn execute(&self, x: i32, y: i32) -> Color {
         let current = self.text_editor.get_current_line_str().to_owned();
         let next = self.text_editor.get_next_nonempty().to_owned();
-        self.program_animator
-            .execute(current, next, [x as f32, y as f32, self.t])
+        self.program_animator.execute(current, next, x, y, self.t)
     }
 }
