@@ -1,7 +1,4 @@
 
-* TODO Implement other animation types
-- Dissolve
-- Swap out program character by character
 * TODO Parallelise pixel calculation or use GPU
 Should be easy to parallelise since the state is totally independent
 for each pixel, however this is really what the GPU is for. Using the
@@ -17,6 +14,9 @@ thread.
 * TODO Build .app bundle on macOS
 See https://stackoverflow.com/questions/1596945/building-osx-app-bundle
 * TODO Add undo/redo functionality
+* DONE Implement other animation types-
+- Dissolve
+- Swap out program character by character
 * DONE Implement wrapping for the animation marker
 * DONE Implement skipping over empty lines for the animation marker
 * DONE Add sequencing between programs

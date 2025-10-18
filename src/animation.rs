@@ -78,17 +78,109 @@ impl DissolveAnimation {
     }
 }
 
+fn number_of_changes_needed(from: String, to: String) -> u32 {
+    let from_vec: Vec<u8> = from.into_bytes();
+    let to_vec: Vec<u8> = to.into_bytes();
+    let mut num_changes = (from_vec.len() as i32 - to_vec.len() as i32).unsigned_abs();
+
+    for i in 0..from_vec.len().min(to_vec.len()) {
+        if from_vec[i] != to_vec[i] {
+            num_changes += 1;
+        }
+    }
+
+    num_changes
+}
+
+fn make_one_change(from: String, to: String) -> String {
+    let mut from_vec: Vec<u8> = from.into_bytes();
+    let mut to_vec: Vec<u8> = to.into_bytes();
+
+    if from_vec.len() > to_vec.len() {
+        from_vec.pop();
+    } else if to_vec.len() > from_vec.len() {
+        to_vec.pop();
+    } else if from_vec != to_vec {
+        let mut i = 0;
+        while from_vec[i] == to_vec[i] {
+            i += 1;
+        }
+        from_vec[i] = to_vec[i];
+    }
+
+    String::from_utf8(from_vec).unwrap()
+}
+
+struct ProgramDissolveAnimation {
+    current: String,
+    next_program: String,
+    should_finish_in_time: f32,
+    time_between_each_change: f32,
+    t: f32,
+}
+
+impl ProgramDissolveAnimation {
+    fn new(should_finish_in_time: f32) -> Self {
+        Self {
+            current: String::new(),
+            next_program: String::new(),
+            should_finish_in_time,
+            time_between_each_change: 0.0,
+            t: 0.0,
+        }
+    }
+
+    fn execute(
+        &mut self,
+        current_program: String,
+        next_program: String,
+        x: i32,
+        y: i32,
+        t: f32,
+    ) -> Color {
+        if self.current.is_empty() {
+            self.set_new_programs(current_program, next_program);
+        }
+
+        let initial_values = [x as f32, y as f32, t];
+
+        program::execute_string_to_color(&self.current, initial_values)
+    }
+
+    fn tick(&mut self, frame_time: f32) {
+        if self.t >= self.time_between_each_change {
+            self.current = make_one_change(self.current.clone(), self.next_program.clone());
+            self.t = 0.0;
+        }
+        self.t += frame_time;
+    }
+
+    fn set_new_programs(&mut self, current_program: String, next_program: String) {
+        self.time_between_each_change = self.should_finish_in_time
+            / number_of_changes_needed(current_program.clone(), next_program.clone()) as f32;
+        self.current = current_program;
+        self.next_program = next_program;
+    }
+
+    fn reset(&mut self) {
+        self.current.clear();
+        self.t = 0.0;
+    }
+}
+
 #[derive(PartialEq, Eq)]
 enum Animation {
     Fade,
     Dissolve,
+    ProgramDissolve,
 }
 
 impl Animation {
     fn random() -> Self {
-        match rand::random_range(0..2) {
+        match rand::random_range(0..3) {
             0 => Animation::Fade,
-            _ => Animation::Dissolve,
+            1 => Animation::Dissolve,
+            _ => Animation::ProgramDissolve,
         }
     }
 }
@@ -97,6 +189,7 @@ pub struct ProgramAnimator {
     playing: bool,
     fade_animation: FadeAnimation,
     dissolve_animation: DissolveAnimation,
+    program_dissolve_animation: ProgramDissolveAnimation,
     current_animation: Animation,
     t: f32,
     cycle_time: f32,
@@ -107,25 +200,21 @@ impl ProgramAnimator {
     pub fn new(cycle_time: f32, pause_fraction: f32, width: i32, height: i32) -> Self {
         assert!(pause_fraction >= 0.0);
         assert!(pause_fraction < 1.0);
-        let mut me = Self {
+        let should_finish_in_time = cycle_time * (1.0 - pause_fraction);
+        Self {
             playing: true,
             fade_animation: FadeAnimation {},
-            dissolve_animation: DissolveAnimation::new(
-                width,
-                height,
-                cycle_time * (1.0 - pause_fraction),
-            ),
+            dissolve_animation: DissolveAnimation::new(width, height, should_finish_in_time),
+            program_dissolve_animation: ProgramDissolveAnimation::new(should_finish_in_time),
             current_animation: Animation::random(),
             t: 0.0,
             cycle_time,
             pause_fraction,
-        };
-        me.reset();
-        me
+        }
     }
 
     pub fn execute(
-        &self,
+        &mut self,
         current_program: String,
         next_program: String,
         x: i32,
@@ -145,6 +234,10 @@ impl ProgramAnimator {
                 ),
                 Animation::Dissolve => {
                     self.dissolve_animation
+                        .execute(current_program, next_program, x, y, t)
+                }
+                Animation::ProgramDissolve => {
+                    self.program_dissolve_animation
                         .execute(current_program, next_program, x, y, t)
                 }
             }
@@ -184,8 +277,16 @@ impl ProgramAnimator {
         if self.playing {
             self.t += frame_time / self.cycle_time;
 
-            if self.t >= self.pause_fraction && self.current_animation == Animation::Dissolve {
-                self.dissolve_animation.tick(frame_time);
+            if self.t >= self.pause_fraction {
+                match self.current_animation {
+                    Animation::Dissolve => {
+                        self.dissolve_animation.tick(frame_time);
+                    }
+                    Animation::ProgramDissolve => {
+                        self.program_dissolve_animation.tick(frame_time);
+                    }
+                    _ => {}
+                }
             }
         }
     }
@@ -197,6 +298,7 @@ impl ProgramAnimator {
     pub fn reset(&mut self) {
         self.t = 0.0;
         self.dissolve_animation.reset();
+        self.program_dissolve_animation.reset();
         self.current_animation = Animation::random();
     }
 }
