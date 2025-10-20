@@ -1,4 +1,7 @@
 
+* TODO Use frequency-dependent visualisation
+E.g. the x axis can vary the frequency f = x, with the time being
+modulated by the instantaneous amplitude at that frequency
 * TODO Parallelise pixel calculation or use GPU
 Should be easy to parallelise since the state is totally independent
 for each pixel, however this is really what the GPU is for. Using the
@@ -10,7 +13,7 @@ When moving to using the pipe, all parallelisation was removed.
 This is difficult as it is totally asynchronous, it just launches a
 thread.
 * TODO Add keyboard shortcut that duplicates a line to the next line
-* TODO Allow pushing audio loop back onto stack on macOS
+* DONE Allow pushing audio loop back onto stack on macOS
 * TODO Build .app bundle on macOS
 See https://stackoverflow.com/questions/1596945/building-osx-app-bundle
 * TODO Add undo/redo functionality
