@@ -67,7 +67,7 @@ fn main() -> anyhow::Result<()> {
     );
 
     #[cfg(target_os = "macos")]
-    let visualiser_audio_tap = mac_audio::VisualiserAudioTap::setup();
+    let visualiser_audio_tap = mac_audio::VisualiserAudioTap::setup()?;
 
     let mut frames: u64 = 0;
 

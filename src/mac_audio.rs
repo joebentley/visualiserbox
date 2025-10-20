@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use log::info;
 use std::{ffi::c_void, ptr::NonNull};
 
@@ -26,7 +27,7 @@ pub struct VisualiserAudioTap {
 }
 
 impl VisualiserAudioTap {
-    pub fn setup() -> Self {
+    pub fn setup() -> anyhow::Result<Self> {
         info!("Setting up macOS CoreAudio tap");
         let peak_ptr = Box::into_raw(Box::new(0.0_f32));
 
@@ -45,7 +46,9 @@ impl VisualiserAudioTap {
         let mut tap_id: AudioObjectID = 0;
 
         unsafe {
-            AudioHardwareCreateProcessTap(Some(&tap_description), &raw mut tap_id);
+            if AudioHardwareCreateProcessTap(Some(&tap_description), &raw mut tap_id) != 0 {
+                return Err(anyhow!("Error creating tap"));
+            }
         }
 
         let tap_uid = unsafe { tap_description.UUID() }.UUIDString();
@@ -78,31 +81,42 @@ impl VisualiserAudioTap {
         let mut aggregate_device_id: AudioObjectID = 0;
 
         unsafe {
-            AudioHardwareCreateAggregateDevice(
+            let error = AudioHardwareCreateAggregateDevice(
                 AsRef::<CFDictionary<NSString, AnyObject>>::as_ref(&*aggregate_device_properties)
                     .as_opaque(),
                 NonNull::new_unchecked(&raw mut aggregate_device_id),
             );
+
+            if error == 1852797029 {
+                return Err(anyhow!("Aggregate device already exists"));
+            } else if error != 0 {
+                return Err(anyhow!("Error creating aggregate device"));
+            }
         }
 
         let mut tap_io_proc_id: AudioDeviceIOProcID = None;
         unsafe {
-            AudioDeviceCreateIOProcID(
+            if AudioDeviceCreateIOProcID(
                 aggregate_device_id,
                 Some(ioproc_callback),
                 peak_ptr as *mut c_void,
                 NonNull::new_unchecked(&raw mut tap_io_proc_id),
-            );
+            ) != 0
+            {
+                return Err(anyhow!("Error creating audio IO proc"));
+            }
 
-            AudioDeviceStart(aggregate_device_id, tap_io_proc_id);
+            if AudioDeviceStart(aggregate_device_id, tap_io_proc_id) != 0 {
+                return Err(anyhow!("Error starting audio device"));
+            }
         }
 
-        Self {
+        Ok(Self {
             tap_id,
             aggregate_device_id,
             tap_io_proc_id,
             peak_ptr,
-        }
+        })
     }
 
     /// Get the current peak audio from the pointer. Only call once per frame
