@@ -2,6 +2,8 @@ mod animation;
 mod app;
 mod config;
 mod drawing;
+#[cfg(target_os = "macos")]
+mod mac_audio;
 mod program;
 mod recorder;
 mod ringbuffer;
@@ -64,9 +66,14 @@ fn main() -> anyhow::Result<()> {
         scaled_height,
     );
 
+    let peak_ptr = Box::into_raw(Box::new(0.0_f32));
+    #[cfg(target_os = "macos")]
+    mac_audio::setup_mac_global_audio_tap(peak_ptr);
+
     let mut frames: u64 = 0;
 
     while !rl.window_should_close() {
+        let audio_peak = unsafe { *peak_ptr };
         let fps = 1.0 / rl.get_frame_time();
 
         let mouse_position = rl.get_mouse_position();
@@ -88,7 +95,7 @@ fn main() -> anyhow::Result<()> {
 
             for y in 0..scaled_height {
                 for x in 0..scaled_width {
-                    let colour = app_state.execute(x, y);
+                    let colour = app_state.execute(x, y, audio_peak);
                     d.draw_rectangle(x * scale, y * scale, scale, scale, colour);
                 }
             }

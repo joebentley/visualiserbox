@@ -275,9 +275,10 @@ impl AppState {
         }
     }
 
-    pub fn execute(&mut self, x: i32, y: i32) -> Color {
+    pub fn execute(&mut self, x: i32, y: i32, audio_peak: f32) -> Color {
         let current = self.text_editor.get_current_line_str().to_owned();
         let next = self.text_editor.get_next_nonempty().to_owned();
-        self.program_animator.execute(current, next, x, y, self.t)
+        self.program_animator
+            .execute(current, next, x, y, self.t + audio_peak * 100.0)
     }
 }
