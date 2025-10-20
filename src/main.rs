@@ -66,14 +66,13 @@ fn main() -> anyhow::Result<()> {
         scaled_height,
     );
 
-    let peak_ptr = Box::into_raw(Box::new(0.0_f32));
     #[cfg(target_os = "macos")]
-    mac_audio::setup_mac_global_audio_tap(peak_ptr);
+    let visualiser_audio_tap = mac_audio::VisualiserAudioTap::setup();
 
     let mut frames: u64 = 0;
 
     while !rl.window_should_close() {
-        let audio_peak = unsafe { *peak_ptr };
+        let audio_peak = visualiser_audio_tap.audio_peak();
         let fps = 1.0 / rl.get_frame_time();
 
         let mouse_position = rl.get_mouse_position();

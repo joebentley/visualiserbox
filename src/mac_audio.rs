@@ -1,3 +1,4 @@
+use log::info;
 use std::{ffi::c_void, ptr::NonNull};
 
 use objc2::{rc::Retained, runtime::AnyObject, MainThreadMarker};
@@ -5,9 +6,9 @@ use objc2_core_audio::{
     kAudioAggregateDeviceIsPrivateKey, kAudioAggregateDeviceNameKey,
     kAudioAggregateDeviceTapAutoStartKey, kAudioAggregateDeviceTapListKey,
     kAudioAggregateDeviceUIDKey, kAudioSubTapDriftCompensationKey, kAudioSubTapUIDKey,
-    AudioDeviceCreateIOProcID, AudioDeviceIOProcID, AudioDeviceStart,
-    AudioHardwareCreateAggregateDevice, AudioHardwareCreateProcessTap, AudioObjectID,
-    CATapMuteBehavior,
+    AudioDeviceCreateIOProcID, AudioDeviceDestroyIOProcID, AudioDeviceIOProcID, AudioDeviceStart,
+    AudioDeviceStop, AudioHardwareCreateAggregateDevice, AudioHardwareCreateProcessTap,
+    AudioHardwareDestroyProcessTap, AudioObjectID, CATapDescription, CATapMuteBehavior,
 };
 use objc2_core_audio_types::{AudioBufferList, AudioTimeStamp};
 use objc2_core_foundation::CFDictionary;
@@ -17,75 +18,107 @@ fn cstr_to_nsstring(cstr: &std::ffi::CStr) -> Retained<NSString> {
     NSString::from_str(cstr.to_str().unwrap())
 }
 
-pub fn setup_mac_global_audio_tap(peak_ptr: *mut f32) {
-    let mtm = MainThreadMarker::new().unwrap();
+pub struct VisualiserAudioTap {
+    tap_id: AudioObjectID,
+    aggregate_device_id: AudioObjectID,
+    tap_io_proc_id: AudioDeviceIOProcID,
+    peak_ptr: *mut f32,
+}
 
-    let tap_description = unsafe {
-        objc2_core_audio::CATapDescription::initStereoGlobalTapButExcludeProcesses(
-            mtm.alloc(),
-            &NSArray::new(),
-        )
-    };
-    unsafe {
-        tap_description.setMuteBehavior(CATapMuteBehavior::Unmuted);
-        tap_description.setName(ns_string!("Joe's Core Audio Tap"));
-        tap_description.setPrivate(true);
-        tap_description.setExclusive(true);
-    }
+impl VisualiserAudioTap {
+    pub fn setup() -> Self {
+        info!("Setting up macOS CoreAudio tap");
+        let peak_ptr = Box::into_raw(Box::new(0.0_f32));
 
-    let mut tap_id: AudioObjectID = 0;
+        let mtm = MainThreadMarker::new().unwrap();
 
-    unsafe {
-        AudioHardwareCreateProcessTap(Some(&tap_description), &raw mut tap_id);
-    }
+        let tap_description = unsafe {
+            CATapDescription::initStereoGlobalTapButExcludeProcesses(mtm.alloc(), &NSArray::new())
+        };
+        unsafe {
+            tap_description.setMuteBehavior(CATapMuteBehavior::Unmuted);
+            tap_description.setName(ns_string!("Joe's Core Audio Tap"));
+            tap_description.setPrivate(true);
+            tap_description.setExclusive(true);
+        }
 
-    let tap_uid = unsafe { tap_description.UUID() }.UUIDString();
+        let mut tap_id: AudioObjectID = 0;
 
-    let taps = NSArray::from_slice(&[&*NSDictionary::<NSString, AnyObject>::from_slices(
-        &[
-            &*cstr_to_nsstring(kAudioSubTapUIDKey),
-            &*cstr_to_nsstring(kAudioSubTapDriftCompensationKey),
-        ],
-        &[&*tap_uid, &NSNumber::new_bool(true)],
-    )]);
+        unsafe {
+            AudioHardwareCreateProcessTap(Some(&tap_description), &raw mut tap_id);
+        }
 
-    let aggregate_device_properties = NSDictionary::<NSString, AnyObject>::from_slices(
-        &[
-            &*cstr_to_nsstring(kAudioAggregateDeviceNameKey),
-            &*cstr_to_nsstring(kAudioAggregateDeviceUIDKey),
-            &*cstr_to_nsstring(kAudioAggregateDeviceTapListKey),
-            &*cstr_to_nsstring(kAudioAggregateDeviceTapAutoStartKey),
-            &*cstr_to_nsstring(kAudioAggregateDeviceIsPrivateKey),
-        ],
-        &[
-            ns_string!("JoeCoreAudioTapDevice"),
-            ns_string!("com.joebentley.JoeCoreAudioTapDevice"),
-            &*taps,
-            &NSNumber::new_bool(false),
-            &NSNumber::new_bool(true),
-        ],
-    );
+        let tap_uid = unsafe { tap_description.UUID() }.UUIDString();
 
-    let mut aggregate_device_id: AudioObjectID = 0;
+        let taps = NSArray::from_slice(&[&*NSDictionary::<NSString, AnyObject>::from_slices(
+            &[
+                &*cstr_to_nsstring(kAudioSubTapUIDKey),
+                &*cstr_to_nsstring(kAudioSubTapDriftCompensationKey),
+            ],
+            &[&*tap_uid, &NSNumber::new_bool(true)],
+        )]);
 
-    unsafe {
-        AudioHardwareCreateAggregateDevice(
-            AsRef::<CFDictionary<NSString, AnyObject>>::as_ref(&*aggregate_device_properties)
-                .as_opaque(),
-            NonNull::new_unchecked(&raw mut aggregate_device_id),
+        let aggregate_device_properties = NSDictionary::<NSString, AnyObject>::from_slices(
+            &[
+                &*cstr_to_nsstring(kAudioAggregateDeviceNameKey),
+                &*cstr_to_nsstring(kAudioAggregateDeviceUIDKey),
+                &*cstr_to_nsstring(kAudioAggregateDeviceTapListKey),
+                &*cstr_to_nsstring(kAudioAggregateDeviceTapAutoStartKey),
+                &*cstr_to_nsstring(kAudioAggregateDeviceIsPrivateKey),
+            ],
+            &[
+                ns_string!("JoeCoreAudioTapDevice"),
+                ns_string!("com.joebentley.JoeCoreAudioTapDevice"),
+                &*taps,
+                &NSNumber::new_bool(false),
+                &NSNumber::new_bool(true),
+            ],
         );
-    }
 
-    let mut tap_io_proc_id: AudioDeviceIOProcID = None;
-    unsafe {
-        AudioDeviceCreateIOProcID(
+        let mut aggregate_device_id: AudioObjectID = 0;
+
+        unsafe {
+            AudioHardwareCreateAggregateDevice(
+                AsRef::<CFDictionary<NSString, AnyObject>>::as_ref(&*aggregate_device_properties)
+                    .as_opaque(),
+                NonNull::new_unchecked(&raw mut aggregate_device_id),
+            );
+        }
+
+        let mut tap_io_proc_id: AudioDeviceIOProcID = None;
+        unsafe {
+            AudioDeviceCreateIOProcID(
+                aggregate_device_id,
+                Some(ioproc_callback),
+                peak_ptr as *mut c_void,
+                NonNull::new_unchecked(&raw mut tap_io_proc_id),
+            );
+
+            AudioDeviceStart(aggregate_device_id, tap_io_proc_id);
+        }
+
+        Self {
+            tap_id,
             aggregate_device_id,
-            Some(ioproc_callback),
-            peak_ptr as *mut c_void,
-            NonNull::new_unchecked(&raw mut tap_io_proc_id),
-        );
+            tap_io_proc_id,
+            peak_ptr,
+        }
+    }
 
-        AudioDeviceStart(aggregate_device_id, tap_io_proc_id);
+    /// Get the current peak audio from the pointer. Only call once per frame
+    pub fn audio_peak(&self) -> f32 {
+        unsafe { *self.peak_ptr }
+    }
+}
+
+impl Drop for VisualiserAudioTap {
+    fn drop(&mut self) {
+        info!("Tearing down macOS CoreAudio tap");
+        unsafe {
+            AudioDeviceStop(self.aggregate_device_id, self.tap_io_proc_id);
+            AudioDeviceDestroyIOProcID(self.aggregate_device_id, self.tap_io_proc_id);
+            AudioHardwareDestroyProcessTap(self.tap_id);
+        }
     }
 }
 
